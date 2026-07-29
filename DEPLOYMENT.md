@@ -2,6 +2,13 @@
 
 Status snapshot: see the checklist at the bottom for what's done vs. pending.
 
+## Live URLs
+
+- **Backend (Railway):** https://aseango-backend-production.up.railway.app
+- **Admin Dashboard (Vercel):** https://asean-go.vercel.app
+- **Repo:** https://github.com/trippietune/ASEAN-GO
+- **Database:** Supabase project `pcsupxayqqppzhfvandg` (via Transaction pooler, `ap-northeast-2`)
+
 ## Architecture
 
 - **Backend** — Node/Express/TypeScript, Docker image, deploys to Railway
@@ -52,35 +59,34 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejec
 
 ---
 
-## 2. Backend (Railway)
+## 2. Backend (Railway) — ✅ DEPLOYED
 
-Files already in place: `backend/Dockerfile`, `backend/.dockerignore`,
+Live at **https://aseango-backend-production.up.railway.app**, project
+`aseango-backend` in Thanapond Buadeang's Railway workspace. Verified
+end-to-end: `/health`, `/ready` (real DB ping), and a real
+register → JWT → row-in-Supabase round trip through the live URL.
+
+Files in place: `backend/Dockerfile`, `backend/.dockerignore`,
 `backend/railway.json`, `backend/.env.production.example`.
 
 Health checks: `GET /health` (liveness, no dependencies) and `GET /ready`
 (pings the database, returns 503 if unreachable) — `railway.json` is
 configured to use `/health` for Railway's own probe.
 
-### Steps (you'll need to run these yourself — they require your Railway login)
+Env vars are already set on the Railway service (`NODE_ENV`, `JWT_SECRET`
+freshly generated for production — **not** the same one used locally,
+`DATABASE_URL` via the Supabase pooler, `OMISE_PUBLIC_KEY`/`OMISE_SECRET_KEY`
+sandbox keys). `CLOUDINARY_*` are still blank — media uploads won't work in
+production until real Cloudinary keys are added (§ below).
 
+To redeploy after code changes:
 ```bash
-npm i -g @railway/cli
-railway login
 cd backend
-railway init          # or `railway link` if the project already exists
-railway up            # first manual deploy
+railway up --service aseango-backend
 ```
-
-Then in the Railway dashboard, set every variable from
-`backend/.env.production.example` under the service's **Variables** tab
-(never commit real values — that file only documents the shape). At minimum:
-- `DATABASE_URL` — the pooler string from step 1
-- `JWT_SECRET` — generate with `openssl rand -base64 48`; the app **refuses
-  to boot** if this is left as the dev default in production (checked in
-  `src/config/env.ts`)
-- `NODE_ENV=production`
-- `OMISE_PUBLIC_KEY` / `OMISE_SECRET_KEY` — sandbox keys for now; see §6
-- `CLOUDINARY_*` — same keys already used in local dev
+Or just push to `main` — the GitHub Actions deploy workflow (`deploy.yml`)
+handles it automatically once `RAILWAY_TOKEN` is added as a repo secret
+(Railway dashboard → account settings → Tokens).
 
 **Don't wrap values in quotes** in Railway's Variables UI — paste the raw
 string. This was hit and confirmed during setup: a quoted `DATABASE_URL`
@@ -91,6 +97,9 @@ against a garbled hostname instead of an obvious auth error.
 Railway assigns a `*.up.railway.app` domain automatically; SSL is automatic
 and covers that domain with no setup needed. See §5 for a custom domain.
 
+**Still needed:** real `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/
+`CLOUDINARY_API_SECRET` values set via `railway variables --set ... --service aseango-backend`.
+
 ### CI/CD
 
 `.github/workflows/deploy.yml` runs after `ci.yml` passes on `main`, and
@@ -100,26 +109,48 @@ GitHub repo → Settings → Secrets and variables → Actions.
 
 ---
 
-## 3. Admin Dashboard (Vercel)
+## 3. Admin Dashboard (Vercel) — ✅ DEPLOYED
 
-Files already in place: `admin/vercel.json` (SPA rewrite so client-side
-routes like `/pins` don't 404 on refresh).
+Live at **https://asean-go.vercel.app**, project `asean-go` under the
+`thanapond` Vercel account, connected via GitHub integration to
+`trippietune/ASEAN-GO` (Root Directory setting: `admin`) — every push to
+`main` auto-deploys.
 
-### Steps (needs your Vercel login)
+`VITE_API_BASE_URL` is set to the Railway backend URL in the Vercel
+project's Production environment variables; verified the built JS bundle
+references the Railway URL (not `localhost`) and that CORS from the backend
+allows this origin.
 
+Files in place: `admin/vercel.json` (SPA rewrite so client-side routes like
+`/pins` don't 404 on refresh).
+
+**Gotcha hit during setup:** Vite bakes `VITE_*` env vars in at *build* time,
+not runtime — setting the var in Vercel's dashboard after a build already
+ran does nothing until the next build. If the deployed dashboard ever seems
+to be calling the wrong API URL, check the env var is set, then trigger a
+new deployment (push a commit, or use the dashboard's "Redeploy" button)
+rather than assuming the existing build will pick it up.
+
+**Also hit:** running `vercel` CLI commands from inside `admin/` while the
+Vercel project also has a dashboard-configured "Root Directory: admin"
+causes a double-path error (tries to resolve `admin/admin`). Prefer letting
+the GitHub integration handle deploys; only use the CLI for one-off env var
+management (`vercel env add/ls`), run from `admin/` with the project already
+linked via `vercel link --project asean-go`.
+
+To manage env vars via CLI:
 ```bash
-npm i -g vercel
 cd admin
-vercel login
-vercel link        # creates the project, prints org/project IDs
-vercel env add VITE_API_BASE_URL production   # paste the Railway backend URL
-vercel --prod
+vercel link --project asean-go
+vercel env add VITE_API_BASE_URL production
+vercel env ls
 ```
 
-After `vercel link`, grab the IDs it printed (or from `.vercel/project.json`)
-and add as GitHub repo secrets for the CI deploy job:
-`VERCEL_TOKEN` (Vercel dashboard → Settings → Tokens), `VERCEL_ORG_ID`,
-`VERCEL_PROJECT_ID`.
+For the GitHub Actions deploy job (`deploy.yml`) to also work as a fallback,
+add `VERCEL_TOKEN` (Vercel dashboard → Settings → Tokens), `VERCEL_ORG_ID`,
+`VERCEL_PROJECT_ID` (from `admin/.vercel/project.json` after linking) as
+GitHub repo secrets — optional since the GitHub integration already
+auto-deploys.
 
 Vercel's `*.vercel.app` domain gets automatic SSL. See §5 for custom domain.
 
@@ -127,7 +158,7 @@ Vercel's `*.vercel.app` domain gets automatic SSL. See §5 for custom domain.
 
 ## 4. Mobile
 
-### Android — done, needs a rebuild once the backend URL is final
+### Android — ✅ built and signed against the live backend
 
 A release keystore was generated at `mobile/android/keystore/aseango-release.jks`
 (gitignored — **back this file up somewhere safe**; losing it means you can
@@ -138,14 +169,14 @@ The signing config in `android/app/build.gradle.kts` automatically uses this
 keystore when present, falling back to debug signing if it's missing (e.g.
 on a contributor's machine or a CI runner without the file).
 
-A release APK was already built against the **local dev** backend URL as a
-signing/build smoke test. Once the backend is deployed, rebuild pointed at
-the real URL:
+Current release APK (`build/app/outputs/flutter-apk/app-release.apk`) was
+built with:
 ```bash
-cd mobile
-flutter build apk --release --dart-define=API_BASE_URL=https://<your-railway-domain>
+flutter build apk --release --dart-define=API_BASE_URL=https://aseango-backend-production.up.railway.app
 ```
-Output: `build/app/outputs/flutter-apk/app-release.apk`
+Signing verified via `apksigner verify --print-certs` (real AseanGo cert, not
+debug). Rebuild with the same command any time the backend URL changes (e.g.
+after §5's custom domain is set up).
 
 For Play Store, an `.aab` (App Bundle) is generally required instead of a raw
 APK: `flutter build appbundle --release --dart-define=API_BASE_URL=...`
@@ -218,10 +249,12 @@ banking details.
 - [x] Admin dashboard Vercel config (SPA rewrites), build verified
 - [x] Android release keystore generated, signing wired into Gradle, release APK built
 - [x] `DATABASE_URL` switched to the Supabase pooler string, verified end-to-end from inside a Docker container in production mode (register → JWT issued → row written/read back on Supabase)
-- [ ] **Blocked on you:** first git commit + push to a GitHub repo (needed before Railway/Vercel/Actions can deploy from it)
-- [ ] **Blocked on you:** `railway login` + first deploy
-- [ ] **Blocked on you:** `vercel login` + first deploy
-- [ ] **Blocked on you:** custom domain + DNS records
-- [ ] **Blocked on you:** Omise live-mode business verification
+- [x] Pushed to GitHub (`trippietune/ASEAN-GO`)
+- [x] Backend deployed to Railway, live at `aseango-backend-production.up.railway.app`, verified end-to-end
+- [x] Admin dashboard deployed to Vercel via GitHub integration, live at `asean-go.vercel.app`, correct backend URL verified in the built bundle + CORS verified
+- [x] Release APK rebuilt against the live production backend URL
+- [ ] **Blocked on you:** custom domain + DNS records (see §5)
+- [ ] **Blocked on you:** Omise live-mode business verification (see §6)
+- [ ] **Blocked on you:** real Cloudinary keys in Railway's env vars (media upload currently non-functional in production)
 - [ ] **Needs a Mac:** iOS IPA build (Xcode + Apple Developer account)
-- [ ] Rebuild Android release APK once the real backend URL is live
+- [ ] Optional: add `RAILWAY_TOKEN`/`VERCEL_TOKEN`+IDs as GitHub secrets so `deploy.yml` can auto-deploy on push (currently Vercel already auto-deploys via its own GitHub integration independent of this workflow; Railway does not yet)
