@@ -73,11 +73,13 @@ Health checks: `GET /health` (liveness, no dependencies) and `GET /ready`
 (pings the database, returns 503 if unreachable) — `railway.json` is
 configured to use `/health` for Railway's own probe.
 
-Env vars are already set on the Railway service (`NODE_ENV`, `JWT_SECRET`
-freshly generated for production — **not** the same one used locally,
+Env vars are set on the Railway service: `NODE_ENV`, `JWT_SECRET` (freshly
+generated for production — **not** the same one used locally),
 `DATABASE_URL` via the Supabase pooler, `OMISE_PUBLIC_KEY`/`OMISE_SECRET_KEY`
-sandbox keys). `CLOUDINARY_*` are still blank — media uploads won't work in
-production until real Cloudinary keys are added (§ below).
+(sandbox keys), and `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/
+`CLOUDINARY_API_SECRET` — media uploads verified end-to-end in production
+(real upload → Cloudinary URL returned → publicly accessible → `media_assets`
+row recorded correctly for later cleanup).
 
 To redeploy after code changes:
 ```bash
@@ -253,8 +255,8 @@ banking details.
 - [x] Backend deployed to Railway, live at `aseango-backend-production.up.railway.app`, verified end-to-end
 - [x] Admin dashboard deployed to Vercel via GitHub integration, live at `asean-go.vercel.app`, correct backend URL verified in the built bundle + CORS verified
 - [x] Release APK rebuilt against the live production backend URL
+- [x] Real Cloudinary keys set on Railway, media upload pipeline verified end-to-end in production (upload → Cloudinary URL → accessible → `media_assets` row recorded)
 - [ ] **Blocked on you:** custom domain + DNS records (see §5)
 - [ ] **Blocked on you:** Omise live-mode business verification (see §6)
-- [ ] **Blocked on you:** real Cloudinary keys in Railway's env vars (media upload currently non-functional in production)
 - [ ] **Needs a Mac:** iOS IPA build (Xcode + Apple Developer account)
 - [ ] Optional: add `RAILWAY_TOKEN`/`VERCEL_TOKEN`+IDs as GitHub secrets so `deploy.yml` can auto-deploy on push (currently Vercel already auto-deploys via its own GitHub integration independent of this workflow; Railway does not yet)
