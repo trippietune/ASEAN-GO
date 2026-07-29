@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: asean_go
+      POSTGRES_PASSWORD: asean_go_dev
+      POSTGRES_DB: asean_go
+    ports:
+      - "5433:5432"
+    volumes:
+      - asean_go_pg_data:/var/lib/postgresql/data
+
+volumes:
+  asean_go_pg_data:

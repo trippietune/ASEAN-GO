@@ -1,0 +1,48 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
+import '../../../core/api/providers.dart';
+import '../data/pin_model.dart';
+import '../data/pins_repository.dart';
+
+final pinsRepositoryProvider = Provider<PinsRepository>((ref) {
+  return PinsRepository(ref.watch(apiClientProvider));
+});
+
+// Bangkok as a sane fallback center when location permission is unavailable.
+const _fallbackLat = 13.7563;
+const _fallbackLng = 100.5018;
+
+Future<Position?> _resolvePosition() async {
+  final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) return null;
+
+  var permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+  }
+  if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+    return null;
+  }
+  return Geolocator.getCurrentPosition();
+}
+
+class MapCenter {
+  const MapCenter({required this.lat, required this.lng, required this.isRealLocation});
+
+  final double lat;
+  final double lng;
+  final bool isRealLocation;
+}
+
+final currentPositionProvider = FutureProvider.autoDispose<MapCenter>((ref) async {
+  final position = await _resolvePosition();
+  if (position == null) {
+    return const MapCenter(lat: _fallbackLat, lng: _fallbackLng, isRealLocation: false);
+  }
+  return MapCenter(lat: position.latitude, lng: position.longitude, isRealLocation: true);
+});
+
+final nearbyPinsProvider = FutureProvider.autoDispose<List<VerifiedPin>>((ref) async {
+  final center = await ref.watch(currentPositionProvider.future);
+  return ref.watch(pinsRepositoryProvider).fetchNearby(lat: center.lat, lng: center.lng);
+});

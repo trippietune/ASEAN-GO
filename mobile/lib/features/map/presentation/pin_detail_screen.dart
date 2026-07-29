@@ -1,0 +1,294 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/empty_state_widget.dart';
+import '../../../shared/widgets/gradient_button.dart';
+import '../../../shared/widgets/safety_indicator.dart';
+import '../../auth/presentation/auth_controller.dart';
+import '../../safety/presentation/report_risk_dialog.dart';
+import '../../safety/presentation/risk_report_card.dart';
+import '../../safety/presentation/risk_reports_controller.dart';
+import '../data/pin_model.dart';
+import 'map_controller.dart';
+import 'review_card.dart';
+import 'reviews_controller.dart';
+import 'star_rating.dart';
+import 'write_review_dialog.dart';
+
+class PinDetailScreen extends ConsumerStatefulWidget {
+  const PinDetailScreen({super.key, required this.pin});
+
+  final VerifiedPin pin;
+
+  @override
+  ConsumerState<PinDetailScreen> createState() => _PinDetailScreenState();
+}
+
+class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
+  bool _checkingIn = false;
+
+  Future<void> _checkIn() async {
+    setState(() => _checkingIn = true);
+    try {
+      final result = await ref.read(pinsRepositoryProvider).checkIn(widget.pin.id);
+      if (!mounted) return;
+      ref.read(authControllerProvider.notifier).applyXpGain(xp: result.xp, level: result.level);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('เช็คอินสำเร็จแล้ว! ได้ไป +${result.xpAwarded} XP 🌸')),
+      );
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final message = e.response?.statusCode == 409
+          ? 'วันนี้เช็คอินที่นี่ไปแล้วนะ พรุ่งนี้มาใหม่ได้เลย'
+          : 'เช็คอินไม่สำเร็จ ลองอีกครั้งนะ';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) setState(() => _checkingIn = false);
+    }
+  }
+
+  void _navigate() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('กำลังพาไปทางนั้นนะ... (ตัวอย่างเท่านั้น ยังไม่เชื่อมต่อจริง)')),
+    );
+  }
+
+  Future<void> _deleteReview() async {
+    final error = await ref.read(reviewsControllerProvider(widget.pin.id).notifier).deleteMyReview();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error ?? 'ลบรีวิวแล้วนะ')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pin = widget.pin;
+    final authState = ref.watch(authControllerProvider);
+    final myUserId = authState is AuthAuthenticated ? authState.user.id : null;
+    final reviewsAsync = ref.watch(reviewsControllerProvider(pin.id));
+    final riskReportsAsync = ref.watch(riskReportsControllerProvider(pin.id));
+
+    return Scaffold(
+      appBar: AppBar(title: Text(pin.name)),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${pin.category} · ${pin.city ?? pin.country}'),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        StarRating(rating: pin.averageRating),
+                        const SizedBox(width: 6),
+                        Text(
+                          pin.reviewCount > 0
+                              ? '${pin.averageRating.toStringAsFixed(1)} (${pin.reviewCount} รีวิว)'
+                              : 'ยังไม่มีรีวิว',
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                    if (pin.isVerified) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('🌼', style: TextStyle(fontSize: 12)),
+                            SizedBox(width: 4),
+                            Text(
+                              'มีคนยืนยันแล้ว',
+                              style: TextStyle(color: AppColors.greyDark, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              SafetyIndicator(score: pin.safetyScore),
+            ],
+          ),
+          if (pin.isScamAlert) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.danger.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: AppColors.danger),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      pin.scamAlertMessage ?? 'มีคนเคยเจอมิจฉาชีพแถวนี้ ระวังหน่อยนะ',
+                      style: const TextStyle(color: AppColors.greyDark),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (pin.description != null) ...[
+            const SizedBox(height: 12),
+            Text(pin.description!),
+          ],
+          if (pin.photoUrls.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 96,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: pin.photoUrls.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) => ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    pin.photoUrls[index],
+                    width: 120,
+                    height: 96,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 120,
+                      height: 96,
+                      color: AppColors.yellowPale,
+                      child: const Icon(Icons.image_not_supported_outlined, size: 24),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _navigate,
+                  icon: const Icon(Icons.directions),
+                  label: const Text('นำทาง'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GradientButton(
+                  label: 'เช็คอิน',
+                  icon: Icons.check_circle_outline,
+                  isLoading: _checkingIn,
+                  onPressed: _checkingIn ? null : _checkIn,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'รีวิวจากนักเดินทาง 💬',
+                style: TextStyle(color: AppColors.pinkDark, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  final mine = reviewsAsync.valueOrNull?.where((r) => r.userId == myUserId).firstOrNull;
+                  showWriteReviewDialog(context, pinId: pin.id, existing: mine);
+                },
+                icon: const Icon(Icons.rate_review_outlined, size: 18),
+                label: const Text('เขียนรีวิว'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          reviewsAsync.when(
+            loading: () => const Center(
+              child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()),
+            ),
+            error: (err, _) => EmptyStateWidget(
+              icon: Icons.error_outline,
+              message: 'ยังโหลดรีวิวไม่ได้เลย ลองใหม่อีกทีนะ',
+              onRetry: () => ref.read(reviewsControllerProvider(pin.id).notifier).refresh(),
+            ),
+            data: (reviews) {
+              if (reviews.isEmpty) {
+                return const EmptyStateWidget(
+                  icon: Icons.rate_review_outlined,
+                  message: 'ยังไม่มีใครรีวิวที่นี่เลย\nเป็นคนแรกที่เล่าประสบการณ์กันไหม 🌸',
+                );
+              }
+              return Column(
+                children: [
+                  for (final review in reviews) ...[
+                    ReviewCard(
+                      review: review,
+                      isMine: review.userId == myUserId,
+                      onDelete: review.userId == myUserId ? _deleteReview : null,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 28),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'รายงานพื้นที่เสี่ยง 🍂',
+                style: TextStyle(color: AppColors.pinkDark, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              TextButton.icon(
+                onPressed: () => showReportRiskDialog(context, pinId: pin.id),
+                icon: const Icon(Icons.report_gmailerrorred_outlined, size: 18),
+                label: const Text('รายงาน'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          riskReportsAsync.when(
+            loading: () => const Center(
+              child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()),
+            ),
+            error: (err, _) => EmptyStateWidget(
+              icon: Icons.error_outline,
+              message: 'ยังโหลดรายงานไม่ได้เลย ลองใหม่อีกทีนะ',
+              onRetry: () => ref.read(riskReportsControllerProvider(pin.id).notifier).refresh(),
+            ),
+            data: (reports) {
+              if (reports.isEmpty) {
+                return const EmptyStateWidget(
+                  icon: Icons.shield_outlined,
+                  message: 'ยังไม่มีใครรายงานความเสี่ยงที่นี่เลย 🌿',
+                );
+              }
+              return Column(
+                children: [
+                  for (final report in reports) ...[
+                    RiskReportCard(report: report),
+                    const SizedBox(height: 10),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
