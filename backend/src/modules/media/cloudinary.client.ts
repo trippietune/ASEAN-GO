@@ -1,5 +1,6 @@
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { env } from "../../config/env";
+import { logger } from "../../config/logger";
 
 export class CloudinaryNotConfiguredError extends Error {
   constructor() {
@@ -75,6 +76,6 @@ export async function destroyImage(publicId: string): Promise<void> {
     ensureConfigured();
     await cloudinary.uploader.destroy(publicId);
   } catch (err) {
-    console.error(`Failed to delete Cloudinary asset ${publicId}:`, err);
+    logger.error({ err, publicId }, "Failed to delete Cloudinary asset");
   }
 }

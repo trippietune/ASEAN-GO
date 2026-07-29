@@ -12,6 +12,20 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4-alpine
+        env:
+          POSTGRES_USER: asean_go
+          POSTGRES_PASSWORD: asean_go_dev
+          POSTGRES_DB: asean_go_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,6 +36,16 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+      - name: Apply migrations to test database
+        run: |
+          for f in db/migrations/*.sql; do
+            PGPASSWORD=asean_go_dev psql -h localhost -p 5433 -U asean_go -d asean_go_test -f "$f"
+          done
+      - name: Run tests
+        run: npm test
+        # Payments tests call the real Omise *sandbox* (test-mode only, no
+        # real money) — these keys are already committed in .env.test since
+        # test-mode keys can't touch a real charge/refund ledger.
 
   admin:
     runs-on: ubuntu-latest
