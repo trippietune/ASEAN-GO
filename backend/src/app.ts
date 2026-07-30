@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
 import { logger } from "./config/logger";
+import { env } from "./config/env";
 import { pool } from "./db/pool";
 import { authRouter } from "./modules/auth/auth.routes";
 import { usersRouter } from "./modules/users/users.routes";
@@ -17,7 +18,7 @@ import { riskReportsRouter } from "./modules/risk-reports/risk-reports.routes";
 import { adminRouter } from "./modules/admin/admin.routes";
 import { paymentsRouter } from "./modules/payments/payments.routes";
 import { mediaRouter } from "./modules/media/media.routes";
-import { errorHandler } from "./middleware/errorHandler";
+import { errorHandler, HttpError } from "./middleware/errorHandler";
 import { authLimiter, paymentLimiter, generalLimiter } from "./middleware/rateLimit";
 
 /// Builds the Express app without starting a listener or Socket.IO — kept
@@ -32,8 +33,26 @@ export function createApp() {
   // request instead of the real client, making per-IP limits meaningless.
   app.set("trust proxy", 1);
 
+  const corsAllowedOrigins = env.corsAllowedOrigins;
+  const isLocalhostOrigin = (origin: string) => /^https?:\/\/localhost(:\d+)?$/.test(origin);
+
   app.use(helmet());
-  app.use(cors());
+  app.use(
+    cors({
+      // No Origin header (mobile apps, curl, server-to-server) is allowed
+      // through — CORS is a browser-enforced mechanism, so this only ever
+      // gates browser-based clients (the admin dashboard, Flutter web).
+      origin: (origin, callback) => {
+        const allowed =
+          !origin || (corsAllowedOrigins ? corsAllowedOrigins.includes(origin) : isLocalhostOrigin(origin));
+        if (allowed) {
+          callback(null, true);
+        } else {
+          callback(new HttpError(403, "Not allowed by CORS"));
+        }
+      },
+    })
+  );
   app.use(express.json());
   app.use(
     pinoHttp({

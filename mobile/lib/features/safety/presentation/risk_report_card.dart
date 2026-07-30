@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../data/risk_report_model.dart';
+import 'report_risk_dialog.dart' show riskSeverityLabel;
 
 class RiskReportCard extends StatelessWidget {
   const RiskReportCard({super.key, required this.report});
@@ -21,6 +23,7 @@ class RiskReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -36,7 +39,7 @@ class RiskReportCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    report.severity.label,
+                    riskSeverityLabel(l10n, report.severity),
                     style: TextStyle(color: _severityColor, fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                 ),

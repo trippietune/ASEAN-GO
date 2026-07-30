@@ -16,6 +16,9 @@ class VerifiedPin {
     this.city,
     this.scamAlertMessage,
     this.photoUrls = const [],
+    this.isCheckpoint = false,
+    this.isRecommended = false,
+    this.hasActiveQuest = false,
   });
 
   final String id;
@@ -34,6 +37,9 @@ class VerifiedPin {
   final String? description;
   final String? scamAlertMessage;
   final List<String> photoUrls;
+  final bool isCheckpoint;
+  final bool isRecommended;
+  final bool hasActiveQuest;
 
   factory VerifiedPin.fromJson(Map<String, dynamic> json) {
     return VerifiedPin(
@@ -53,6 +59,9 @@ class VerifiedPin {
       description: json['description'] as String?,
       scamAlertMessage: json['scam_alert_message'] as String?,
       photoUrls: (json['photo_urls'] as List<dynamic>?)?.cast<String>() ?? const [],
+      isCheckpoint: json['is_checkpoint'] as bool? ?? false,
+      isRecommended: json['is_recommended'] as bool? ?? false,
+      hasActiveQuest: json['has_active_quest'] as bool? ?? false,
     );
   }
 }

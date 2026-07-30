@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../shared/widgets/gradient_button.dart';
 import '../../../shared/widgets/safety_indicator.dart';
@@ -30,18 +31,19 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
 
   Future<void> _checkIn() async {
     setState(() => _checkingIn = true);
+    final l10n = AppLocalizations.of(context);
     try {
       final result = await ref.read(pinsRepositoryProvider).checkIn(widget.pin.id);
       if (!mounted) return;
       ref.read(authControllerProvider.notifier).applyXpGain(xp: result.xp, level: result.level);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('เช็คอินสำเร็จแล้ว! ได้ไป +${result.xpAwarded} XP 🌸')),
+        SnackBar(content: Text(l10n.pinDetailCheckInSuccess(result.xpAwarded))),
       );
     } on DioException catch (e) {
       if (!mounted) return;
       final message = e.response?.statusCode == 409
-          ? 'วันนี้เช็คอินที่นี่ไปแล้วนะ พรุ่งนี้มาใหม่ได้เลย'
-          : 'เช็คอินไม่สำเร็จ ลองอีกครั้งนะ';
+          ? l10n.pinDetailCheckInAlreadyDone
+          : l10n.pinDetailCheckInError;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) setState(() => _checkingIn = false);
@@ -50,15 +52,16 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
 
   void _navigate() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('กำลังพาไปทางนั้นนะ... (ตัวอย่างเท่านั้น ยังไม่เชื่อมต่อจริง)')),
+      SnackBar(content: Text(AppLocalizations.of(context).pinDetailNavigatePlaceholder)),
     );
   }
 
   Future<void> _deleteReview() async {
-    final error = await ref.read(reviewsControllerProvider(widget.pin.id).notifier).deleteMyReview();
+    final success = await ref.read(reviewsControllerProvider(widget.pin.id).notifier).deleteMyReview();
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'ลบรีวิวแล้วนะ')),
+      SnackBar(content: Text(success ? l10n.pinDetailReviewDeleted : l10n.pinDetailReviewDeleteError)),
     );
   }
 
@@ -69,6 +72,7 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
     final myUserId = authState is AuthAuthenticated ? authState.user.id : null;
     final reviewsAsync = ref.watch(reviewsControllerProvider(pin.id));
     final riskReportsAsync = ref.watch(riskReportsControllerProvider(pin.id));
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(title: Text(pin.name)),
@@ -90,8 +94,8 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
                         const SizedBox(width: 6),
                         Text(
                           pin.reviewCount > 0
-                              ? '${pin.averageRating.toStringAsFixed(1)} (${pin.reviewCount} รีวิว)'
-                              : 'ยังไม่มีรีวิว',
+                              ? l10n.pinDetailRatingSummary(pin.averageRating.toStringAsFixed(1), pin.reviewCount)
+                              : l10n.pinDetailNoReviews,
                           style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                         ),
                       ],
@@ -104,14 +108,14 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
                           color: AppColors.success.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('🌼', style: TextStyle(fontSize: 12)),
-                            SizedBox(width: 4),
+                            const Icon(Icons.verified, size: 14, color: AppColors.success),
+                            const SizedBox(width: 4),
                             Text(
-                              'มีคนยืนยันแล้ว',
-                              style: TextStyle(color: AppColors.greyDark, fontWeight: FontWeight.bold, fontSize: 12),
+                              l10n.pinDetailVerifiedBadge,
+                              style: const TextStyle(color: AppColors.greyDark, fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                           ],
                         ),
@@ -137,8 +141,8 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      pin.scamAlertMessage ?? 'มีคนเคยเจอมิจฉาชีพแถวนี้ ระวังหน่อยนะ',
-                      style: const TextStyle(color: AppColors.greyDark),
+                      pin.scamAlertMessage ?? l10n.pinDetailScamAlertDefault,
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     ),
                   ),
                 ],
@@ -182,13 +186,13 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _navigate,
                   icon: const Icon(Icons.directions),
-                  label: const Text('นำทาง'),
+                  label: Text(l10n.pinDetailNavigateButton),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: GradientButton(
-                  label: 'เช็คอิน',
+                  label: l10n.pinDetailCheckInButton,
                   icon: Icons.check_circle_outline,
                   isLoading: _checkingIn,
                   onPressed: _checkingIn ? null : _checkIn,
@@ -201,7 +205,7 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'รีวิวจากนักเดินทาง 💬',
+                l10n.pinDetailReviewsSectionTitle,
                 style: TextStyle(color: AppColors.pinkDark, fontSize: 16, fontWeight: FontWeight.bold),
               ),
               TextButton.icon(
@@ -210,7 +214,7 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
                   showWriteReviewDialog(context, pinId: pin.id, existing: mine);
                 },
                 icon: const Icon(Icons.rate_review_outlined, size: 18),
-                label: const Text('เขียนรีวิว'),
+                label: Text(l10n.pinDetailWriteReviewButton),
               ),
             ],
           ),
@@ -221,14 +225,14 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
             ),
             error: (err, _) => EmptyStateWidget(
               icon: Icons.error_outline,
-              message: 'ยังโหลดรีวิวไม่ได้เลย ลองใหม่อีกทีนะ',
+              message: l10n.pinDetailReviewsLoadError,
               onRetry: () => ref.read(reviewsControllerProvider(pin.id).notifier).refresh(),
             ),
             data: (reviews) {
               if (reviews.isEmpty) {
-                return const EmptyStateWidget(
+                return EmptyStateWidget(
                   icon: Icons.rate_review_outlined,
-                  message: 'ยังไม่มีใครรีวิวที่นี่เลย\nเป็นคนแรกที่เล่าประสบการณ์กันไหม 🌸',
+                  message: l10n.pinDetailReviewsEmpty,
                 );
               }
               return Column(
@@ -250,13 +254,13 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'รายงานพื้นที่เสี่ยง 🍂',
+                l10n.pinDetailRiskReportsSectionTitle,
                 style: TextStyle(color: AppColors.pinkDark, fontSize: 16, fontWeight: FontWeight.bold),
               ),
               TextButton.icon(
                 onPressed: () => showReportRiskDialog(context, pinId: pin.id),
                 icon: const Icon(Icons.report_gmailerrorred_outlined, size: 18),
-                label: const Text('รายงาน'),
+                label: Text(l10n.pinDetailReportButton),
               ),
             ],
           ),
@@ -267,14 +271,14 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
             ),
             error: (err, _) => EmptyStateWidget(
               icon: Icons.error_outline,
-              message: 'ยังโหลดรายงานไม่ได้เลย ลองใหม่อีกทีนะ',
+              message: l10n.pinDetailRiskReportsLoadError,
               onRetry: () => ref.read(riskReportsControllerProvider(pin.id).notifier).refresh(),
             ),
             data: (reports) {
               if (reports.isEmpty) {
-                return const EmptyStateWidget(
+                return EmptyStateWidget(
                   icon: Icons.shield_outlined,
-                  message: 'ยังไม่มีใครรายงานความเสี่ยงที่นี่เลย 🌿',
+                  message: l10n.pinDetailRiskReportsEmpty,
                 );
               }
               return Column(

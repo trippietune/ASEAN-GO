@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../shared/widgets/app_logo.dart';
 
 /// Shown for a fixed minimum duration on cold start while [AuthController]
@@ -69,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'เพื่อนเดินทางที่คอยดูแลคุณ 🌿',
+                    AppLocalizations.of(context).appTagline,
                     style: TextStyle(fontSize: 13, color: AppColors.greyDark.withValues(alpha: 0.7)),
                   ),
                 ],

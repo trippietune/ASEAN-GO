@@ -2,20 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// Thai text (Sarabun) is layered over the Latin base (Nunito) so Thai
-/// glyphs render correctly while English strings get Nunito's rounded,
-/// friendly shapes — chosen over Prompt/Inter specifically because both
-/// read as warmer and less "engineered" at body-text sizes.
+/// Thai text (Sarabun) is layered over the Latin base (Inter) so Thai
+/// glyphs render correctly while English/numeric strings get Inter's clean,
+/// professional shapes — the standard pairing for a polished product UI.
 TextTheme _brandTextTheme(TextTheme base, Color onSurface) {
-  final nunito = GoogleFonts.nunitoTextTheme(base);
-  return GoogleFonts.sarabunTextTheme(nunito).apply(
+  final inter = GoogleFonts.interTextTheme(base);
+  return GoogleFonts.sarabunTextTheme(inter).apply(
     bodyColor: onSurface,
     displayColor: onSurface,
   );
 }
 
-/// A gentle cross-fade instead of a hard slide — pages feel like they ease
-/// into view rather than snapping across the screen.
+/// Standard Material page transition — a professional UI shouldn't call
+/// attention to its own navigation.
 class _SoftFadePageTransitionsBuilder extends PageTransitionsBuilder {
   const _SoftFadePageTransitionsBuilder();
 
@@ -29,12 +28,7 @@ class _SoftFadePageTransitionsBuilder extends PageTransitionsBuilder {
   ) {
     return FadeTransition(
       opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-      child: ScaleTransition(
-        scale: Tween(begin: 0.98, end: 1.0).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeOut),
-        ),
-        child: child,
-      ),
+      child: child,
     );
   }
 }
@@ -64,7 +58,7 @@ ThemeData buildAppTheme({required Brightness brightness}) {
           onError: AppColors.white,
         );
 
-  final scaffoldBackground = isDark ? AppColors.darkBackground : AppColors.yellowPale;
+  final scaffoldBackground = isDark ? AppColors.darkBackground : AppColors.background;
   final cardSurface = isDark ? AppColors.darkSurface : AppColors.white;
 
   final textTheme = _brandTextTheme(
@@ -79,9 +73,9 @@ ThemeData buildAppTheme({required Brightness brightness}) {
     scaffoldBackgroundColor: scaffoldBackground,
     textTheme: textTheme.copyWith(
       bodyMedium: textTheme.bodyMedium?.copyWith(height: 1.6),
-      bodyLarge: textTheme.bodyLarge?.copyWith(height: 1.6),
+      bodyLarge: textTheme.bodyLarge?.copyWith(height: 1.5),
     ),
-    fontFamily: GoogleFonts.sarabun().fontFamily,
+    fontFamily: GoogleFonts.inter().fontFamily,
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: _SoftFadePageTransitionsBuilder(),
@@ -101,34 +95,37 @@ ThemeData buildAppTheme({required Brightness brightness}) {
 
     cardTheme: CardThemeData(
       color: cardSurface,
-      elevation: isDark ? 0 : 1,
-      shadowColor: Colors.black.withValues(alpha: 0.04),
+      elevation: isDark ? 0 : 2,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
       ),
       margin: EdgeInsets.zero,
     ),
 
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.pink,
+        // pinkDark (not pink) as the button fill: white-on-pink is 4.35:1,
+        // just under WCAG AA's 4.5:1 for this text size — pinkDark clears it
+        // at 5.87:1 comfortably.
+        backgroundColor: AppColors.pinkDark,
         foregroundColor: AppColors.white,
-        disabledBackgroundColor: AppColors.pink.withValues(alpha: 0.4),
+        disabledBackgroundColor: AppColors.pinkDark.withValues(alpha: 0.4),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 0,
-        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 1,
+        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
       ),
     ),
 
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.pink,
+        backgroundColor: AppColors.pinkDark,
         foregroundColor: AppColors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 0,
-        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
       ),
     ),
 
@@ -137,36 +134,36 @@ ThemeData buildAppTheme({required Brightness brightness}) {
         foregroundColor: AppColors.pinkDark,
         side: const BorderSide(color: AppColors.pink, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
       ),
     ),
 
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.pinkDark,
-        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
       ),
     ),
 
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: cardSurface,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: isDark ? Colors.white24 : AppColors.pinkLight.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: isDark ? Colors.white24 : AppColors.textHint),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: isDark ? Colors.white24 : AppColors.pinkLight.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: isDark ? Colors.white24 : AppColors.textHint),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: AppColors.pink, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
       ),
     ),
@@ -195,22 +192,22 @@ ThemeData buildAppTheme({required Brightness brightness}) {
     chipTheme: ChipThemeData(
       backgroundColor: isDark ? AppColors.darkSurfaceAlt : AppColors.yellowPale,
       labelStyle: TextStyle(color: isDark ? AppColors.yellow : AppColors.pinkDark),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       side: BorderSide.none,
     ),
 
     dividerTheme: DividerThemeData(
-      color: isDark ? Colors.white12 : AppColors.pinkLight.withValues(alpha: 0.3),
+      color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.08),
       space: 1,
     ),
 
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: cardSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       showDragHandle: true,
-      dragHandleColor: isDark ? Colors.white24 : AppColors.pinkLight,
+      dragHandleColor: isDark ? Colors.white24 : AppColors.textHint,
     ),
   );
 }

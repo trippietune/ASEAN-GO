@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import { createApp } from "../src/app";
@@ -100,6 +100,97 @@ describe("POST /auth/login", () => {
     // Same message for both cases — an attacker probing for valid emails
     // shouldn't be able to distinguish "wrong password" from "no such user".
     expect(wrongPassword.body.error).toBe(nonexistentEmail.body.error);
+  });
+});
+
+describe("POST /auth/google", () => {
+  it("rejects with 501 when Google sign-in isn't configured (no GOOGLE_CLIENT_ID in test env)", async () => {
+    const res = await request(app).post("/auth/google").send({ idToken: "whatever" });
+    expect(res.status).toBe(501);
+  });
+
+  it("rejects a request missing idToken with a validation error", async () => {
+    const res = await request(app).post("/auth/google").send({});
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("POST /auth/facebook", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("rejects with 501 when Facebook sign-in isn't configured (no FACEBOOK_APP_ID in test env)", async () => {
+    const res = await request(app).post("/auth/facebook").send({ accessToken: "whatever" });
+    expect(res.status).toBe(501);
+  });
+
+  it("rejects a request missing accessToken with a validation error", async () => {
+    const res = await request(app).post("/auth/facebook").send({});
+    expect(res.status).toBe(400);
+  });
+
+  it("creates a new user on first Facebook sign-in and reuses it on a second sign-in with the configured app", async () => {
+    vi.stubEnv("FACEBOOK_APP_ID", "test-app-id");
+    vi.stubEnv("FACEBOOK_APP_SECRET", "test-app-secret");
+    // env.ts reads process.env once at import time, so directly patch the
+    // already-imported singleton rather than relying on re-evaluation.
+    (env as { facebookAppId?: string }).facebookAppId = "test-app-id";
+    (env as { facebookAppSecret?: string }).facebookAppSecret = "test-app-secret";
+
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/debug_token")) {
+        return new Response(JSON.stringify({ data: { is_valid: true, app_id: "test-app-id" } }), { status: 200 });
+      }
+      return new Response(
+        JSON.stringify({ id: "fb-user-123", name: "FB Person", email: "fbperson@example.com" }),
+        { status: 200 }
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = await request(app).post("/auth/facebook").send({ accessToken: "valid-token" });
+    expect(first.status).toBe(200);
+    expect(first.body.user.email).toBe("fbperson@example.com");
+    expect(first.body.user.auth_provider).toBe("facebook");
+    expect(first.body.token).toBeTruthy();
+
+    const second = await request(app).post("/auth/facebook").send({ accessToken: "valid-token" });
+    expect(second.status).toBe(200);
+    expect(second.body.user.id).toBe(first.body.user.id);
+
+    (env as { facebookAppId?: string }).facebookAppId = undefined;
+    (env as { facebookAppSecret?: string }).facebookAppSecret = undefined;
+  });
+
+  it("refuses to sign in when the email is already registered under a different provider", async () => {
+    await request(app).post("/auth/register").send({
+      email: "shared@example.com",
+      password: "password123",
+      displayName: "Email User",
+    });
+
+    (env as { facebookAppId?: string }).facebookAppId = "test-app-id";
+    (env as { facebookAppSecret?: string }).facebookAppSecret = "test-app-secret";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("/debug_token")) {
+          return new Response(JSON.stringify({ data: { is_valid: true, app_id: "test-app-id" } }), { status: 200 });
+        }
+        return new Response(
+          JSON.stringify({ id: "fb-user-999", name: "Someone Else", email: "shared@example.com" }),
+          { status: 200 }
+        );
+      })
+    );
+
+    const res = await request(app).post("/auth/facebook").send({ accessToken: "valid-token" });
+    expect(res.status).toBe(409);
+
+    (env as { facebookAppId?: string }).facebookAppId = undefined;
+    (env as { facebookAppSecret?: string }).facebookAppSecret = undefined;
   });
 });
 

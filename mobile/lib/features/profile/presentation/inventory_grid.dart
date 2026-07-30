@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../store/data/inventory_item_model.dart';
 import '../../store/presentation/inventory_controller.dart';
 
@@ -26,13 +27,14 @@ class InventoryGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final inventoryAsync = ref.watch(inventoryProvider);
+    final l10n = AppLocalizations.of(context);
 
     return inventoryAsync.when(
       loading: () => const Center(
         child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()),
       ),
       error: (err, _) => Text(
-        'ยังโหลดของสะสมไม่ได้เลย ลองใหม่อีกทีนะ',
+        l10n.inventoryLoadError,
         style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
       ),
       data: (items) {
@@ -40,10 +42,17 @@ class InventoryGrid extends ConsumerWidget {
           return Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Text(
-                'ยังไม่มีของสะสมเลย 🎒\nไปช้อปที่ร้านค้ากันก่อนนะ',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.backpack_outlined, size: 32, color: Colors.grey.shade400),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.inventoryEmptyState,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  ),
+                ],
               ),
             ),
           );

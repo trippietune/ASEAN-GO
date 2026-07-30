@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/media/media_repository.dart';
 import '../../core/theme/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 /// Pick-photos-from-camera-or-gallery grid used by review, pin, and
 /// risk-report submission flows. Each photo is uploaded to our backend
@@ -42,7 +43,7 @@ class _PhotoPickerGridState extends ConsumerState<PhotoPickerGrid> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกทีนะ')),
+        SnackBar(content: Text(AppLocalizations.of(context).photoUploadError)),
       );
     } finally {
       if (mounted) setState(() => _isUploading = false);
@@ -50,6 +51,7 @@ class _PhotoPickerGridState extends ConsumerState<PhotoPickerGrid> {
   }
 
   Future<void> _showSourcePicker() async {
+    final l10n = AppLocalizations.of(context);
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) => SafeArea(
@@ -58,12 +60,12 @@ class _PhotoPickerGridState extends ConsumerState<PhotoPickerGrid> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('ถ่ายรูป'),
+              title: Text(l10n.photoSourceCamera),
               onTap: () => Navigator.of(context).pop(ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('เลือกจากคลังภาพ'),
+              title: Text(l10n.photoSourceGallery),
               onTap: () => Navigator.of(context).pop(ImageSource.gallery),
             ),
           ],
@@ -125,14 +127,24 @@ class _PhotoThumbnail extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: 2,
-          right: 2,
+          top: -4,
+          right: -4,
+          // 32x32 tap target (vs. the 20px visual badge) — as large as fits
+          // without clipping against the row/thumbnail bounds or overlapping
+          // the next photo in the strip.
           child: GestureDetector(
             onTap: onRemove,
-            child: const CircleAvatar(
-              radius: 10,
-              backgroundColor: Colors.black54,
-              child: Icon(Icons.close, size: 12, color: Colors.white),
+            behavior: HitTestBehavior.opaque,
+            child: const SizedBox(
+              width: 32,
+              height: 32,
+              child: Center(
+                child: CircleAvatar(
+                  radius: 10,
+                  backgroundColor: Colors.black54,
+                  child: Icon(Icons.close, size: 12, color: Colors.white),
+                ),
+              ),
             ),
           ),
         ),

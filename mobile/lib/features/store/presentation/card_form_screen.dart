@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/gradient_button.dart';
 import '../data/coins_repository.dart';
 import '../data/omise_tokenization.dart';
@@ -54,26 +55,29 @@ class _CardFormScreenState extends State<CardFormScreen> {
   }
 
   String? _validateNumber(String? value) {
+    final l10n = AppLocalizations.of(context);
     final digits = (value ?? '').replaceAll(' ', '');
-    if (digits.length < 12) return 'หมายเลขบัตรไม่ครบ';
-    if (!isValidLuhn(digits)) return 'หมายเลขบัตรไม่ถูกต้อง';
+    if (digits.length < 12) return l10n.cardFormNumberIncomplete;
+    if (!isValidLuhn(digits)) return l10n.cardFormNumberInvalid;
     return null;
   }
 
   String? _validateExpiry(String? value) {
+    final l10n = AppLocalizations.of(context);
     final match = RegExp(r'^(\d{2})/(\d{2})$').firstMatch(value ?? '');
-    if (match == null) return 'รูปแบบ MM/YY';
+    if (match == null) return l10n.cardFormExpiryFormat;
     final month = int.parse(match.group(1)!);
     final year = 2000 + int.parse(match.group(2)!);
-    if (month < 1 || month > 12) return 'เดือนไม่ถูกต้อง';
+    if (month < 1 || month > 12) return l10n.cardFormExpiryMonthInvalid;
     final now = DateTime.now();
     final expiry = DateTime(year, month + 1); // first day after the expiry month
-    if (expiry.isBefore(now)) return 'บัตรหมดอายุแล้ว';
+    if (expiry.isBefore(now)) return l10n.cardFormExpired;
     return null;
   }
 
   String? _validateCvv(String? value) {
-    if (value == null || value.length < 3 || value.length > 4) return 'CVV ไม่ถูกต้อง';
+    final l10n = AppLocalizations.of(context);
+    if (value == null || value.length < 3 || value.length > 4) return l10n.cardFormCvvInvalid;
     return null;
   }
 
@@ -114,41 +118,46 @@ class _CardFormScreenState extends State<CardFormScreen> {
       if (!mounted) return;
       setState(() {
         _stage = _Stage.failure;
-        _errorMessage = 'ชำระเงินไม่สำเร็จ ลองใหม่อีกทีนะ';
+        _errorMessage = AppLocalizations.of(context).cardFormChargeFailedRetry;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('ชำระเงิน')),
+      appBar: AppBar(title: Text(l10n.cardFormTitle)),
       body: switch (_stage) {
         _Stage.form => _buildForm(),
-        _Stage.charging => const _StatusView(
-            emoji: '🍃',
-            message: 'กำลังดำเนินการชำระเงิน...',
+        _Stage.charging => _StatusView(
+            icon: Icons.hourglass_top,
+            iconColor: AppColors.pinkDark,
+            message: l10n.cardFormChargingMessage,
             showSpinner: true,
           ),
         _Stage.success => _StatusView(
-            emoji: '🎉',
+            icon: Icons.check_circle,
+            iconColor: AppColors.success,
             message: _result?.status == 'pending'
-                ? 'รับคำขอชำระเงินแล้ว กำลังรอการยืนยัน'
-                : 'ชำระเงินสำเร็จแล้ว! ได้เหรียญเพิ่ม ${widget.package.coins} เหรียญ',
+                ? l10n.cardFormPendingMessage
+                : l10n.cardFormSuccessMessage(widget.package.coins),
             onDone: () => Navigator.of(context).pop(_result),
           ),
         _Stage.failure => _StatusView(
-            emoji: '😢',
-            message: _errorMessage ?? 'ชำระเงินไม่สำเร็จ',
+            icon: Icons.error_outline,
+            iconColor: AppColors.danger,
+            message: _errorMessage ?? l10n.cardFormChargeFailed,
             isError: true,
             onDone: () => setState(() => _stage = _Stage.form),
-            doneLabel: 'ลองใหม่อีกครั้ง',
+            doneLabel: l10n.retryLabel,
           ),
       },
     );
   }
 
   Widget _buildForm() {
+    final l10n = AppLocalizations.of(context);
     final pkg = widget.package;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -165,9 +174,9 @@ class _CardFormScreenState extends State<CardFormScreen> {
               ),
               child: Row(
                 children: [
-                  const Text('🪙', style: TextStyle(fontSize: 24)),
+                  const Icon(Icons.monetization_on, size: 26, color: AppColors.yellowDark),
                   const SizedBox(width: 12),
-                  Expanded(child: Text('${pkg.coins} เหรียญ', style: const TextStyle(fontWeight: FontWeight.bold))),
+                  Expanded(child: Text(l10n.coinAmountLabel(pkg.coins), style: const TextStyle(fontWeight: FontWeight.bold))),
                   Text('฿${pkg.priceThb}', style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
@@ -176,15 +185,15 @@ class _CardFormScreenState extends State<CardFormScreen> {
             TextFormField(
               controller: _nameController,
               textCapitalization: TextCapitalization.characters,
-              decoration: const InputDecoration(labelText: 'ชื่อบนบัตร', prefixIcon: Icon(Icons.person_outline)),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'กรุณากรอกชื่อบนบัตร' : null,
+              decoration: InputDecoration(labelText: l10n.cardFormNameLabel, prefixIcon: const Icon(Icons.person_outline)),
+              validator: (v) => (v == null || v.trim().isEmpty) ? l10n.cardFormNameValidator : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _numberController,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly, CardNumberFormatter()],
-              decoration: const InputDecoration(labelText: 'หมายเลขบัตร', prefixIcon: Icon(Icons.credit_card)),
+              decoration: InputDecoration(labelText: l10n.cardFormNumberLabel, prefixIcon: const Icon(Icons.credit_card)),
               validator: _validateNumber,
             ),
             const SizedBox(height: 12),
@@ -216,12 +225,20 @@ class _CardFormScreenState extends State<CardFormScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              'ข้อมูลบัตรของคุณจะถูกส่งตรงไปยัง Omise อย่างปลอดภัย ไม่ผ่านเซิร์ฟเวอร์ของเรา 🔒',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            Row(
+              children: [
+                Icon(Icons.lock_outline, size: 12, color: Colors.grey.shade500),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    l10n.cardFormSecurityNote,
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
-            GradientButton(label: 'ชำระเงิน ฿${pkg.priceThb}', onPressed: _submit),
+            GradientButton(label: l10n.cardFormPayButton(pkg.priceThb), onPressed: _submit),
           ],
         ),
       ),
@@ -231,7 +248,8 @@ class _CardFormScreenState extends State<CardFormScreen> {
 
 class _StatusView extends StatelessWidget {
   const _StatusView({
-    required this.emoji,
+    required this.icon,
+    required this.iconColor,
     required this.message,
     this.showSpinner = false,
     this.isError = false,
@@ -239,7 +257,8 @@ class _StatusView extends StatelessWidget {
     this.doneLabel,
   });
 
-  final String emoji;
+  final IconData icon;
+  final Color iconColor;
   final String message;
   final bool showSpinner;
   final bool isError;
@@ -254,7 +273,7 @@ class _StatusView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 56)),
+            Icon(icon, size: 64, color: iconColor),
             const SizedBox(height: 20),
             Text(
               message,
@@ -262,7 +281,7 @@ class _StatusView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: isError ? AppColors.danger : AppColors.greyDark,
+                color: isError ? AppColors.danger : Theme.of(context).colorScheme.onSurface,
               ),
             ),
             if (showSpinner) ...[
@@ -271,7 +290,7 @@ class _StatusView extends StatelessWidget {
             ],
             if (onDone != null) ...[
               const SizedBox(height: 24),
-              GradientButton(label: doneLabel ?? 'เสร็จสิ้น', onPressed: onDone),
+              GradientButton(label: doneLabel ?? AppLocalizations.of(context).doneLabel, onPressed: onDone),
             ],
           ],
         ),

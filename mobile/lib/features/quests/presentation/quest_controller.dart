@@ -32,9 +32,11 @@ class QuestsController extends AsyncNotifier<QuestsState> {
     });
   }
 
-  /// Returns the awarded XP so the caller can show a snackbar, or null if the
-  /// quest was already completed / the request failed.
-  Future<int?> completeQuest(Quest quest) async {
+  /// Returns the server's authoritative completion result (including final
+  /// xp/level/coinBalance — never recomputed on the client) so the caller
+  /// can show a snackbar, or null if the quest was already completed / the
+  /// request failed.
+  Future<QuestCompletionResult?> completeQuest(Quest quest) async {
     final current = state.valueOrNull;
     if (current == null) return null;
 
@@ -50,7 +52,7 @@ class QuestsController extends AsyncNotifier<QuestsState> {
       ];
       state = AsyncData(QuestsState(quests: updatedQuests));
 
-      return result.alreadyCompleted ? null : result.xpAwarded;
+      return result.alreadyCompleted ? null : result;
     } catch (_) {
       return null;
     }

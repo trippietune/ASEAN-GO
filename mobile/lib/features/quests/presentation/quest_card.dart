@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/xp_badge.dart';
 import '../data/quest_model.dart';
 
@@ -45,12 +46,13 @@ class _QuestCardState extends State<QuestCard> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final quest = widget.quest;
     final completed = quest.isCompleted;
     final borderColor = completed ? AppColors.success : AppColors.yellowSoft;
 
     final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: completed ? Colors.grey : AppColors.greyDark,
+          color: completed ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5) : Theme.of(context).colorScheme.onSurface,
           decoration: completed ? TextDecoration.lineThrough : null,
           fontSize: 16,
         );
@@ -59,7 +61,7 @@ class _QuestCardState extends State<QuestCard> with SingleTickerProviderStateMix
       opacity: _fade,
       child: Container(
         decoration: BoxDecoration(
-          color: completed ? AppColors.greyLight : Theme.of(context).cardTheme.color,
+          color: Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(20),
           border: Border(left: BorderSide(color: borderColor, width: 4)),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 3))],
@@ -71,10 +73,14 @@ class _QuestCardState extends State<QuestCard> with SingleTickerProviderStateMix
             children: [
               Column(
                 children: [
-                  Text(completed ? '✅' : '🌱', style: const TextStyle(fontSize: 24)),
+                  Icon(
+                    completed ? Icons.check_circle : Icons.pending_actions,
+                    size: 26,
+                    color: completed ? AppColors.success : AppColors.pinkDark,
+                  ),
                   const SizedBox(height: 2),
                   Text(
-                    completed ? 'ทำแล้ว' : 'รอทำ',
+                    completed ? l10n.questStatusCompleted : l10n.questStatusPending,
                     style: TextStyle(fontSize: 10, color: completed ? AppColors.success : AppColors.pinkDark),
                   ),
                 ],
@@ -105,7 +111,7 @@ class _QuestCardState extends State<QuestCard> with SingleTickerProviderStateMix
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              '+${quest.coinReward} เหรียญ',
+                              l10n.questCoinReward(quest.coinReward),
                               style: const TextStyle(color: AppColors.greyDark, fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                           ),
@@ -131,7 +137,7 @@ class _QuestCardState extends State<QuestCard> with SingleTickerProviderStateMix
                             width: 14,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('ไปทำกัน'),
+                        : Text(l10n.questCardCompleteButton),
                   ),
                 ),
             ],

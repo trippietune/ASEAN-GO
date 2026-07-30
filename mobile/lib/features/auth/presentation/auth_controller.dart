@@ -1,13 +1,30 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/providers.dart';
 import '../../../core/realtime/socket_service.dart';
 import '../data/auth_repository.dart';
+import '../data/social_auth_service.dart';
 import '../data/user_model.dart';
+
+/// Pulls the backend's `{ error: "..." }` message out of a failed auth call,
+/// falling back to [fallback] for network errors or unexpected shapes — auth
+/// endpoints return specific, user-facing messages (e.g. "Invalid email or
+/// password", "An account with this email already exists") that are more
+/// useful here than a generic string.
+String _authErrorMessage(Object error, String fallback) {
+  if (error is DioException) {
+    final data = error.response?.data;
+    if (data is Map && data['error'] is String) return data['error'] as String;
+  }
+  return fallback;
+}
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(ref.watch(apiClientProvider));
 });
+
+final socialAuthServiceProvider = Provider<SocialAuthService>((ref) => SocialAuthService());
 
 sealed class AuthState {
   const AuthState();
@@ -32,13 +49,19 @@ class AuthUnauthenticated extends AuthState {
 }
 
 class AuthController extends StateNotifier<AuthState> {
-  AuthController(this._repository, this._socketService, ApiClient apiClient) : super(const AuthInitial()) {
+  AuthController(
+    this._repository,
+    this._socketService,
+    this._socialAuthService,
+    ApiClient apiClient,
+  ) : super(const AuthInitial()) {
     apiClient.onUnauthorized = _handleUnauthorized;
     _restoreSession();
   }
 
   final AuthRepository _repository;
   final SocketService _socketService;
+  final SocialAuthService _socialAuthService;
 
   void _handleUnauthorized() {
     _socketService.disconnect();
@@ -56,18 +79,23 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> login(String email, String password) async {
+  Future<void> login(String email, String password, {required String fallbackError}) async {
     state = const AuthLoading();
     try {
       final user = await _repository.login(email: email, password: password);
       state = AuthAuthenticated(user);
       await _socketService.connect();
-    } catch (_) {
-      state = const AuthUnauthenticated(error: 'Invalid email or password');
+    } catch (e) {
+      state = AuthUnauthenticated(error: _authErrorMessage(e, fallbackError));
     }
   }
 
-  Future<void> register(String email, String password, String displayName) async {
+  Future<void> register(
+    String email,
+    String password,
+    String displayName, {
+    required String fallbackError,
+  }) async {
     state = const AuthLoading();
     try {
       final user = await _repository.register(
@@ -77,8 +105,46 @@ class AuthController extends StateNotifier<AuthState> {
       );
       state = AuthAuthenticated(user);
       await _socketService.connect();
-    } catch (_) {
-      state = const AuthUnauthenticated(error: 'Could not create account. Try a different email.');
+    } catch (e) {
+      state = AuthUnauthenticated(error: _authErrorMessage(e, fallbackError));
+    }
+  }
+
+  /// Runs the native Google sign-in flow, then exchanges the resulting ID
+  /// token for our session. Leaves state untouched (no error shown) if the
+  /// user simply cancels the picker — that's not a failure worth surfacing.
+  Future<void> loginWithGoogle({required String fallbackError}) async {
+    state = const AuthLoading();
+    try {
+      final idToken = await _socialAuthService.signInWithGoogle();
+      if (idToken == null) {
+        state = const AuthUnauthenticated();
+        return;
+      }
+      final user = await _repository.loginWithGoogle(idToken: idToken);
+      state = AuthAuthenticated(user);
+      await _socketService.connect();
+    } catch (e) {
+      state = AuthUnauthenticated(error: _authErrorMessage(e, fallbackError));
+    }
+  }
+
+  /// Runs the native Facebook login flow, then exchanges the resulting
+  /// access token for our session. Leaves state untouched (no error shown)
+  /// if the user simply cancels — that's not a failure worth surfacing.
+  Future<void> loginWithFacebook({required String fallbackError}) async {
+    state = const AuthLoading();
+    try {
+      final accessToken = await _socialAuthService.signInWithFacebook();
+      if (accessToken == null) {
+        state = const AuthUnauthenticated();
+        return;
+      }
+      final user = await _repository.loginWithFacebook(accessToken: accessToken);
+      state = AuthAuthenticated(user);
+      await _socketService.connect();
+    } catch (e) {
+      state = AuthUnauthenticated(error: _authErrorMessage(e, fallbackError));
     }
   }
 
@@ -112,6 +178,7 @@ final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
   return AuthController(
     ref.watch(authRepositoryProvider),
     ref.watch(socketServiceProvider),
+    ref.watch(socialAuthServiceProvider),
     ref.watch(apiClientProvider),
   );
 });

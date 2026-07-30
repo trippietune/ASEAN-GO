@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/app_logo.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -7,8 +8,9 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('เกี่ยวกับเรา')),
+      appBar: AppBar(title: Text(l10n.aboutTitle)),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -21,23 +23,21 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'เวอร์ชัน 1.0.0',
+            l10n.aboutVersion,
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'ASEAN GO คือผู้คุ้มกันดิจิทัลและไกด์นำเที่ยวส่วนตัวของคุณในภูมิภาคอาเซียน '
-            'ช่วยให้การเดินทางปลอดภัยยิ่งขึ้นด้วยจุดที่ผ่านการยืนยัน ระบบแจ้งเตือนความเสี่ยง '
-            'และภารกิจที่ทำให้การท่องเที่ยวสนุกยิ่งขึ้น',
+          Text(
+            l10n.aboutDescription,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, height: 1.5),
+            style: const TextStyle(fontSize: 14, height: 1.5),
           ),
           const SizedBox(height: 24),
           const Divider(),
-          const _AboutLinkTile(icon: Icons.language, label: 'เว็บไซต์', value: 'aseango.example.com'),
-          const _AboutLinkTile(icon: Icons.email_outlined, label: 'อีเมลติดต่อ', value: 'support@aseango.example.com'),
-          const _AboutLinkTile(icon: Icons.description_outlined, label: 'นโยบายความเป็นส่วนตัว', value: 'aseango.example.com/privacy'),
+          _AboutLinkTile(icon: Icons.language, label: l10n.aboutWebsiteLabel, value: 'aseango.example.com'),
+          _AboutLinkTile(icon: Icons.email_outlined, label: l10n.aboutContactEmailLabel, value: 'support@aseango.example.com'),
+          _AboutLinkTile(icon: Icons.description_outlined, label: l10n.aboutPrivacyPolicyLabel, value: 'aseango.example.com/privacy'),
         ],
       ),
     );

@@ -9,11 +9,13 @@ const CHECKIN_XP_REWARD = 15;
 
 export const pinsRouter = Router();
 
+const pinCategorySchema = z.enum(["food", "shop", "attraction", "transport", "lodging", "other"]);
+
 const nearbyQuerySchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   radiusMeters: z.coerce.number().min(1).max(50_000).default(2000),
-  category: z.string().optional(),
+  category: pinCategorySchema.optional(),
 });
 
 // GET /pins/nearby?lat=..&lng=..&radiusMeters=..
@@ -26,10 +28,12 @@ pinsRouter.get("/nearby", async (req, res, next) => {
       `SELECT p.id, p.name, p.category, p.description, p.country, p.city,
               ST_Y(p.location::geometry) AS lat, ST_X(p.location::geometry) AS lng,
               p.is_verified, p.is_scam_alert, p.scam_alert_message, p.safety_score,
+              p.is_checkpoint, p.is_recommended,
               ST_Distance(p.location, ST_MakePoint($2, $1)::geography) AS distance_meters,
               COALESCE(r.average_rating, 0) AS average_rating,
               COALESCE(r.review_count, 0) AS review_count,
-              COALESCE(rr.report_count, 0) AS report_count
+              COALESCE(rr.report_count, 0) AS report_count,
+              COALESCE(aq.has_active_quest, FALSE) AS has_active_quest
        FROM verified_pins p
        LEFT JOIN (
          SELECT pin_id, AVG(rating)::float AS average_rating, COUNT(*)::int AS review_count
@@ -38,6 +42,10 @@ pinsRouter.get("/nearby", async (req, res, next) => {
        LEFT JOIN (
          SELECT pin_id, COUNT(*)::int AS report_count FROM risk_reports GROUP BY pin_id
        ) rr ON rr.pin_id = p.id
+       LEFT JOIN (
+         SELECT DISTINCT pin_id, TRUE AS has_active_quest FROM quests
+         WHERE pin_id IS NOT NULL AND active_from <= now() AND (active_until IS NULL OR active_until > now())
+       ) aq ON aq.pin_id = p.id
        WHERE ST_DWithin(p.location, ST_MakePoint($2, $1)::geography, $3)
          AND ($4::text IS NULL OR p.category = $4)
        ORDER BY distance_meters ASC
@@ -91,10 +99,10 @@ pinsRouter.get("/nearby-risks", async (req, res, next) => {
 
 const createPinSchema = z.object({
   name: z.string().min(1).max(200),
-  category: z.enum(["food", "shop", "attraction", "transport", "lodging", "other"]),
+  category: pinCategorySchema,
   description: z.string().max(2000).optional(),
-  country: z.string().min(1),
-  city: z.string().optional(),
+  country: z.string().min(1).max(100),
+  city: z.string().max(100).optional(),
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   photoUrls: z.array(z.string().url()).max(6).optional(),
@@ -137,10 +145,12 @@ pinsRouter.get("/:id", async (req, res, next) => {
       `SELECT p.id, p.name, p.category, p.description, p.country, p.city,
               ST_Y(p.location::geometry) AS lat, ST_X(p.location::geometry) AS lng,
               p.is_verified, p.is_scam_alert, p.scam_alert_message, p.safety_score,
+              p.is_checkpoint, p.is_recommended,
               p.submitted_by, p.created_at, p.updated_at, p.photo_urls,
               COALESCE(r.average_rating, 0) AS average_rating,
               COALESCE(r.review_count, 0) AS review_count,
-              COALESCE(rr.report_count, 0) AS report_count
+              COALESCE(rr.report_count, 0) AS report_count,
+              COALESCE(aq.has_active_quest, FALSE) AS has_active_quest
        FROM verified_pins p
        LEFT JOIN (
          SELECT pin_id, AVG(rating)::float AS average_rating, COUNT(*)::int AS review_count
@@ -149,6 +159,10 @@ pinsRouter.get("/:id", async (req, res, next) => {
        LEFT JOIN (
          SELECT pin_id, COUNT(*)::int AS report_count FROM risk_reports GROUP BY pin_id
        ) rr ON rr.pin_id = p.id
+       LEFT JOIN (
+         SELECT DISTINCT pin_id, TRUE AS has_active_quest FROM quests
+         WHERE pin_id IS NOT NULL AND active_from <= now() AND (active_until IS NULL OR active_until > now())
+       ) aq ON aq.pin_id = p.id
        WHERE p.id = $1`,
       [pinId]
     );
@@ -161,10 +175,10 @@ pinsRouter.get("/:id", async (req, res, next) => {
 
 const updatePinSchema = z.object({
   name: z.string().min(1).max(200).optional(),
-  category: z.enum(["food", "shop", "attraction", "transport", "lodging", "other"]).optional(),
+  category: pinCategorySchema.optional(),
   description: z.string().max(2000).optional(),
-  country: z.string().min(1).optional(),
-  city: z.string().optional(),
+  country: z.string().min(1).max(100).optional(),
+  city: z.string().max(100).optional(),
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
   photoUrls: z.array(z.string().url()).max(6).optional(),

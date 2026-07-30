@@ -3,12 +3,14 @@ import { z } from "zod";
 import { pool } from "../../db/pool";
 import { requireAuth, AuthedRequest } from "../../middleware/auth";
 import { HttpError } from "../../middleware/errorHandler";
+import { ensureDailyQuestsGenerated } from "./quests.service";
 
 export const questsRouter = Router();
 
 // GET /quests/daily — active daily quests, with this user's progress if any.
 questsRouter.get("/daily", requireAuth, async (req: AuthedRequest, res, next) => {
   try {
+    await ensureDailyQuestsGenerated();
     const result = await pool.query(
       `SELECT q.id, q.title, q.description, q.quest_type, q.xp_reward, q.coin_reward,
               q.pin_id, q.country,
@@ -42,7 +44,7 @@ questsRouter.post("/complete", requireAuth, async (req: AuthedRequest, res, next
     await client.query("BEGIN");
 
     const questResult = await client.query(
-      `SELECT id, xp_reward, coin_reward, pin_id FROM quests WHERE id = $1`,
+      `SELECT id, xp_reward, coin_reward, pin_id, active_from FROM quests WHERE id = $1`,
       [questId]
     );
     const quest = questResult.rows[0];
@@ -52,6 +54,20 @@ questsRouter.post("/complete", requireAuth, async (req: AuthedRequest, res, next
       throw new HttpError(400, "This quest is tied to a different pin");
     }
 
+    // A pin-linked quest requires an actual check-in at that pin during the
+    // quest's active window — otherwise completing it is just two IDs in a
+    // request body with no proof the user went anywhere, which defeats the
+    // point of a "visit this place" quest.
+    if (quest.pin_id) {
+      const checkin = await client.query(
+        `SELECT id FROM pin_checkins WHERE user_id = $1 AND pin_id = $2 AND created_at >= $3`,
+        [req.userId, quest.pin_id, quest.active_from]
+      );
+      if (!checkin.rowCount) {
+        throw new HttpError(400, "Check in at this quest's pin before completing it");
+      }
+    }
+
     const existing = await client.query(
       `SELECT status FROM user_quests WHERE user_id = $1 AND quest_id = $2`,
       [req.userId, questId]
@@ -59,8 +75,8 @@ questsRouter.post("/complete", requireAuth, async (req: AuthedRequest, res, next
 
     if (existing.rowCount && existing.rows[0].status === "completed") {
       await client.query("COMMIT");
-      const user = await pool.query("SELECT xp, level FROM users WHERE id = $1", [req.userId]);
-      return res.json({ alreadyCompleted: true, xpAwarded: 0, ...user.rows[0] });
+      const user = await pool.query("SELECT xp, level, coin_balance FROM users WHERE id = $1", [req.userId]);
+      return res.json({ alreadyCompleted: true, xpAwarded: 0, coinAwarded: 0, ...user.rows[0] });
     }
 
     await client.query(
@@ -81,6 +97,14 @@ questsRouter.post("/complete", requireAuth, async (req: AuthedRequest, res, next
        RETURNING xp, level, coin_balance`,
       [req.userId, quest.xp_reward, quest.coin_reward]
     );
+
+    if (quest.coin_reward > 0) {
+      await client.query(
+        `INSERT INTO coin_transactions (user_id, amount, type, reference_id)
+         VALUES ($1, $2, 'quest_reward', $3)`,
+        [req.userId, quest.coin_reward, questId]
+      );
+    }
 
     await client.query("COMMIT");
 

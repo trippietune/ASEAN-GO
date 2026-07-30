@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/coins_repository.dart';
 import 'card_form_screen.dart';
@@ -64,6 +65,7 @@ class _CoinPurchaseDialogState extends ConsumerState<CoinPurchaseDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -75,14 +77,20 @@ class _CoinPurchaseDialogState extends ConsumerState<CoinPurchaseDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'เติมเหรียญ 🪙',
-            style: TextStyle(color: AppColors.pinkDark, fontSize: 18, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Icon(Icons.monetization_on, color: AppColors.yellowDark, size: 22),
+              const SizedBox(width: 6),
+              Text(
+                l10n.coinPurchaseTitle,
+                style: TextStyle(color: AppColors.pinkDark, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(
-            'ใช้ซื้อของสะสมในร้านค้าได้เลย',
-            style: TextStyle(color: AppColors.greyDark.withValues(alpha: 0.7), fontSize: 13),
+            l10n.coinPurchaseSubtitle,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13),
           ),
           const SizedBox(height: 16),
           for (final package in CoinPackage.values) ...[
@@ -94,10 +102,16 @@ class _CoinPurchaseDialogState extends ConsumerState<CoinPurchaseDialog> {
             ),
             const SizedBox(height: 10),
           ],
-          Text(
-            'ชำระเงินปลอดภัยผ่าน Omise 🔒',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontStyle: FontStyle.italic),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 12, color: Colors.grey.shade500),
+              const SizedBox(width: 4),
+              Text(
+                l10n.coinPurchaseSecureNote,
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontStyle: FontStyle.italic),
+              ),
+            ],
           ),
         ],
       ),
@@ -120,6 +134,7 @@ class _CoinPackageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final bonus = _bonusPercent(package);
 
     return Material(
@@ -132,20 +147,20 @@ class _CoinPackageTile extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              const Text('🪙', style: TextStyle(fontSize: 28)),
+              const Icon(Icons.monetization_on, size: 30, color: AppColors.yellowDark),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${package.coins} เหรียญ',
+                      l10n.coinAmountLabel(package.coins),
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.greyDark),
                     ),
                     if (bonus > 0) ...[
                       const SizedBox(height: 2),
                       Text(
-                        'คุ้มกว่า $bonus%',
+                        l10n.coinPurchaseBonusPercent(bonus),
                         style: const TextStyle(color: AppColors.success, fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                     ],

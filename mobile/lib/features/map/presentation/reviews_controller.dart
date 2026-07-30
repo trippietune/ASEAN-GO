@@ -20,8 +20,9 @@ class ReviewsController extends FamilyAsyncNotifier<List<Review>, String> {
     state = await AsyncValue.guard(() => ref.read(reviewsRepositoryProvider).fetchForPin(arg));
   }
 
-  /// Returns null on success, or an error message for the caller to show.
-  Future<String?> submitReview({
+  /// Returns true on success, or false so the caller can show a localized
+  /// error message (this layer has no BuildContext to localize with).
+  Future<bool> submitReview({
     required int rating,
     String? comment,
     List<String> photoUrls = const [],
@@ -37,19 +38,21 @@ class ReviewsController extends FamilyAsyncNotifier<List<Review>, String> {
       final current = state.valueOrNull ?? [];
       final withoutMine = current.where((r) => r.userId != review.userId).toList();
       state = AsyncData([review, ...withoutMine]);
-      return null;
+      return true;
     } catch (_) {
-      return 'ส่งรีวิวไม่สำเร็จ ลองใหม่อีกทีนะ';
+      return false;
     }
   }
 
-  Future<String?> deleteMyReview() async {
+  /// Returns true on success, or false so the caller can show a localized
+  /// error message (this layer has no BuildContext to localize with).
+  Future<bool> deleteMyReview() async {
     try {
       await ref.read(reviewsRepositoryProvider).deleteForPin(arg);
       await refresh();
-      return null;
+      return true;
     } catch (_) {
-      return 'ลบรีวิวไม่สำเร็จ ลองใหม่อีกทีนะ';
+      return false;
     }
   }
 }

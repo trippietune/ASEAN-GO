@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
-/// Primary call-to-action button: flat pastel pink fill with a gentle
+/// Primary call-to-action button: flat pinkDark fill with a gentle
 /// press-down scale, used in place of a plain ElevatedButton wherever the
 /// design calls for extra emphasis (login, check-in, complete quest).
 ///
 /// Kept the class name `GradientButton` even though it no longer renders a
-/// gradient — every screen already imports it by this name, and a flat pastel
-/// fill reads as warmer than a bright gradient while the swap-in stayed a
-/// one-file change.
+/// gradient — every screen already imports it by this name, and the swap-in
+/// stayed a one-file change. Uses `pinkDark` (not `pink`) for the same WCAG
+/// AA contrast reason as the theme's button styles: white-on-pink is 4.35:1,
+/// under the 4.5:1 threshold for this text size; pinkDark clears it at 5.87:1.
 class GradientButton extends StatefulWidget {
   const GradientButton({
     super.key,
@@ -53,13 +54,13 @@ class _GradientButtonState extends State<GradientButton> {
           duration: const Duration(milliseconds: 200),
           width: widget.expand ? double.infinity : null,
           decoration: BoxDecoration(
-            color: disabled ? Colors.grey.shade300 : AppColors.pink,
-            borderRadius: BorderRadius.circular(16),
+            color: disabled ? Colors.grey.shade300 : AppColors.pinkDark,
+            borderRadius: BorderRadius.circular(12),
             boxShadow: disabled
                 ? null
                 : [
                     BoxShadow(
-                      color: AppColors.pink.withValues(alpha: 0.18),
+                      color: AppColors.pinkDark.withValues(alpha: 0.18),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -68,7 +69,7 @@ class _GradientButtonState extends State<GradientButton> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               onTap: disabled ? null : widget.onPressed,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
@@ -91,7 +92,7 @@ class _GradientButtonState extends State<GradientButton> {
                         widget.label,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
                       ),

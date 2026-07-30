@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 import '../data/store_item_model.dart';
@@ -10,18 +11,18 @@ import 'store_item_card.dart';
 
 const _categories = <String?>[null, 'outfit', 'avatar', 'booster', 'souvenir'];
 
-String _categoryLabel(String? category) {
+String _categoryLabel(AppLocalizations l10n, String? category) {
   switch (category) {
     case 'outfit':
-      return 'ชุด';
+      return l10n.storeCategoryOutfit;
     case 'avatar':
-      return 'อวาตาร์';
+      return l10n.storeCategoryAvatar;
     case 'booster':
-      return 'บูสเตอร์';
+      return l10n.storeCategoryBooster;
     case 'souvenir':
-      return 'ของที่ระลึก';
+      return l10n.storeCategorySouvenir;
     default:
-      return 'ทั้งหมด';
+      return l10n.storeCategoryAll;
   }
 }
 
@@ -59,20 +60,22 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with SingleTickerProv
     if (!mounted) return;
     setState(() => _purchasingItemId = null);
 
+    final l10n = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'ได้ของชิ้นใหม่แล้ว! 🎉')),
+      SnackBar(content: Text(error ?? l10n.storeItemPurchasedMessage)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final storeAsync = ref.watch(storeControllerProvider);
     final selectedCategory = ref.watch(storeCategoryProvider);
     final coinBalanceAsync = ref.watch(coinBalanceProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ร้านค้า 🛍️'),
+        title: Text(l10n.storeScreenTitle),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -89,7 +92,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with SingleTickerProv
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('🪙', style: TextStyle(fontSize: 16)),
+                      const Icon(Icons.monetization_on, size: 18, color: AppColors.yellowDark),
                       const SizedBox(width: 6),
                       Text(
                         coinBalanceAsync.valueOrNull?.toString() ?? '—',
@@ -107,14 +110,14 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with SingleTickerProv
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: [for (final c in _categories) Tab(text: _categoryLabel(c))],
+          tabs: [for (final c in _categories) Tab(text: _categoryLabel(l10n, c))],
         ),
       ),
       body: storeAsync.when(
         loading: () => const _StoreGridShimmer(),
         error: (err, _) => EmptyStateWidget(
           icon: Icons.error_outline,
-          message: 'ยังโหลดร้านค้าไม่ได้เลย ลองใหม่อีกทีนะ\n$err',
+          message: l10n.storeLoadErrorMessage(err.toString()),
           onRetry: () => ref.read(storeControllerProvider.notifier).refresh(),
         ),
         data: (state) {
@@ -123,9 +126,9 @@ class _StoreScreenState extends ConsumerState<StoreScreen> with SingleTickerProv
               : state.items.where((i) => i.type == selectedCategory).toList();
 
           if (items.isEmpty) {
-            return const EmptyStateWidget(
+            return EmptyStateWidget(
               icon: Icons.shopping_bag_outlined,
-              message: 'ยังไม่มีสินค้าในหมวดนี้เลย',
+              message: l10n.storeEmptyCategoryMessage,
             );
           }
 

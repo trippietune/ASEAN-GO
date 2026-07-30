@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,10 +19,15 @@ void main() {
   });
 
   testWidgets('shows the login screen when unauthenticated', (WidgetTester tester) async {
+    // Default test locale is en_US; the app's supported locales are th/en with
+    // th as the source, so pin en explicitly to make the assertion locale-independent.
+    tester.platformDispatcher.localeTestValue = const Locale('en');
+    addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+
     await tester.pumpWidget(const ProviderScope(child: AseanGoApp()));
     await tester.pumpAndSettle();
 
-    expect(find.text('ยินดีต้อนรับสู่ AseanGo 🌸'), findsOneWidget);
-    expect(find.text('มาเที่ยวด้วยกันนะ'), findsOneWidget);
+    expect(find.text('Welcome to AseanGo'), findsOneWidget);
+    expect(find.text("Let's go"), findsOneWidget);
   });
 }

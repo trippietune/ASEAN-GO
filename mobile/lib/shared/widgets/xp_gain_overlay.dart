@@ -62,14 +62,26 @@ class _FloatingXpLabelState extends State<_FloatingXpLabel> with SingleTickerPro
           ),
         );
       },
-      child: Text(
-        '🌸 +${widget.xp} XP',
-        style: const TextStyle(
-          color: AppColors.pinkDark,
-          fontWeight: FontWeight.bold,
-          fontSize: 17,
-          shadows: [Shadow(color: Colors.white, blurRadius: 4)],
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.star_rounded,
+            size: 18,
+            color: AppColors.pinkDark,
+            shadows: [Shadow(color: Colors.white, blurRadius: 4)],
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '+${widget.xp} XP',
+            style: const TextStyle(
+              color: AppColors.pinkDark,
+              fontWeight: FontWeight.bold,
+              fontSize: 17,
+              shadows: [Shadow(color: Colors.white, blurRadius: 4)],
+            ),
+          ),
+        ],
       ),
     );
   }

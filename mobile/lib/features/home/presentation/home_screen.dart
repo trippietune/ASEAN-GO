@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/router/app_tab_controller.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/level_badge.dart';
 import '../../../shared/widgets/organic_accent.dart';
 import '../../../shared/widgets/safety_indicator.dart';
@@ -23,6 +24,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
     final user = authState is AuthAuthenticated ? authState.user : null;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -47,7 +49,7 @@ class HomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'ไปไหนกันดี 🌿',
+                    l10n.homeWhereToGo,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
@@ -56,25 +58,25 @@ class HomeScreen extends ConsumerWidget {
                     children: [
                       _ActionCard(
                         icon: Icons.map_outlined,
-                        label: 'แผนที่',
+                        label: l10n.homeActionMap,
                         onTap: () => ref.read(selectedTabProvider.notifier).state = 1,
                       ),
                       _ActionCard(
                         icon: Icons.checklist_rtl,
-                        label: 'เควส',
+                        label: l10n.homeActionQuests,
                         onTap: () => ref.read(selectedTabProvider.notifier).state = 2,
                       ),
                       _ActionCard(
                         icon: Icons.person_outline,
-                        label: 'โปรไฟล์',
+                        label: l10n.homeActionProfile,
                         onTap: () => ref.read(selectedTabProvider.notifier).state = 3,
                       ),
                       _ActionCard(
                         icon: Icons.notifications_outlined,
-                        label: 'แจ้งเตือน',
+                        label: l10n.homeActionNotifications,
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('ยังไม่มีการแจ้งเตือนใหม่ตอนนี้นะ')),
+                            SnackBar(content: Text(l10n.homeNoNewNotifications)),
                           );
                         },
                       ),
@@ -107,6 +109,7 @@ class _HomeHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final questsState = ref.watch(questsControllerProvider).valueOrNull;
     final xpIntoLevel = user.xp % 100;
+    final l10n = AppLocalizations.of(context);
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
@@ -156,12 +159,12 @@ class _HomeHeader extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'สวัสดี คุณ${user.displayName}! 🌸',
+                            l10n.homeGreeting(user.displayName),
                             style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
-                          const Text('วันนี้ไปเที่ยวไหนกันดีนะ 🌴', style: TextStyle(color: Colors.white, fontSize: 13)),
+                          Text(l10n.homeGreetingSubtitle, style: const TextStyle(color: Colors.white, fontSize: 13)),
                         ],
                       ),
                     ),
@@ -172,7 +175,7 @@ class _HomeHeader extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('ใกล้เลเวลถัดไปแล้วนะ', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    Text(l10n.homeCloseToNextLevel, style: const TextStyle(color: Colors.white, fontSize: 12)),
                     Text('$xpIntoLevel / 100 XP', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
                   ],
                 ),
@@ -190,10 +193,10 @@ class _HomeHeader extends ConsumerWidget {
                   const SizedBox(height: 14),
                   Row(
                     children: [
-                      const Text('🎯', style: TextStyle(fontSize: 14)),
+                      const Icon(Icons.track_changes, size: 16, color: Colors.white),
                       const SizedBox(width: 6),
                       Text(
-                        'วันนี้ทำเควสไปแล้ว ${questsState.completedCount}/${questsState.totalCount} นะ',
+                        l10n.homeQuestsProgressToday(questsState.completedCount, questsState.totalCount),
                         style: const TextStyle(color: Colors.white, fontSize: 13),
                       ),
                     ],
@@ -212,6 +215,7 @@ class _RecommendedQuestsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final questsAsync = ref.watch(questsControllerProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +223,7 @@ class _RecommendedQuestsSection extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(right: 20),
           child: Text(
-            'ภารกิจน่าลอง 🌟',
+            l10n.homeRecommendedQuests,
             style: TextStyle(color: AppColors.pinkDark, fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
@@ -232,7 +236,16 @@ class _RecommendedQuestsSection extends ConsumerWidget {
             data: (state) {
               final pending = state.quests.where((q) => !q.isCompleted).take(5).toList();
               if (pending.isEmpty) {
-                return const Center(child: Text('เก่งมาก ทำครบทุกภารกิจแล้ว 🎉'));
+                return Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.celebration_outlined, size: 18, color: AppColors.success),
+                      const SizedBox(width: 6),
+                      Text(l10n.homeAllQuestsCompleted),
+                    ],
+                  ),
+                );
               }
               return ListView.separated(
                 scrollDirection: Axis.horizontal,
@@ -286,22 +299,23 @@ class _NearbyPlacesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pinsAsync = ref.watch(nearbyPinsProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ที่เที่ยวใกล้ๆ คุณ 📍',
-          style: TextStyle(color: AppColors.greyDark, fontSize: 16, fontWeight: FontWeight.bold),
+          l10n.homeNearbyPlaces,
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         pinsAsync.when(
           loading: () => const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator())),
-          error: (_, _) => const Text('ยังหาที่เที่ยวใกล้ๆ ไม่เจอเลย ลองใหม่อีกทีนะ'),
+          error: (_, _) => Text(l10n.homeNearbyPlacesError),
           data: (pins) {
             final nearest = pins.take(4).toList();
             if (nearest.isEmpty) {
-              return const Text('ยังไม่มีที่เที่ยวใกล้ๆ ตอนนี้เลย');
+              return Text(l10n.homeNoNearbyPlaces);
             }
             return Column(
               children: [
@@ -393,6 +407,7 @@ class _EmergencyButton extends ConsumerWidget {
     final sosState = ref.watch(sosControllerProvider);
     final activeSos = sosState.valueOrNull;
     final isSending = sosState.isLoading;
+    final l10n = AppLocalizations.of(context);
 
     if (activeSos != null) {
       return SizedBox(
@@ -405,7 +420,7 @@ class _EmergencyButton extends ConsumerWidget {
           ),
           onPressed: isSending ? null : () => _confirmResolve(context, ref),
           icon: const Icon(Icons.check_circle_outline),
-          label: const Text('ส่งสัญญาณ SOS แล้ว — แตะเพื่อยกเลิก'),
+          label: Text(l10n.homeSosActiveButton),
         ),
       );
     }
@@ -426,26 +441,24 @@ class _EmergencyButton extends ConsumerWidget {
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               )
             : const Icon(Icons.emergency),
-        label: const Text('ฉุกเฉิน — ส่งพิกัดขอความช่วยเหลือ'),
+        label: Text(l10n.homeSosTriggerButton),
       ),
     );
   }
 
   Future<void> _confirmTrigger(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('เหตุฉุกเฉิน'),
-        content: const Text(
-          'ระบบจะส่งพิกัดปัจจุบันของคุณไปยังผู้ติดต่อฉุกเฉินที่ตั้งไว้ '
-          'และบันทึกเหตุการณ์ไว้ในระบบ',
-        ),
+        title: Text(l10n.homeSosConfirmTitle),
+        content: Text(l10n.homeSosConfirmContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('ยกเลิก')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.homeSosCancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('ส่ง SOS'),
+            child: Text(l10n.homeSosSendButton),
           ),
         ],
       ),
@@ -460,12 +473,12 @@ class _EmergencyButton extends ConsumerWidget {
       data: (event) {
         if (event == null) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ส่งสัญญาณ SOS แล้ว ทีมงานและผู้ติดต่อฉุกเฉินจะได้รับแจ้ง 🍃')),
+          SnackBar(content: Text(l10n.homeSosSentMessage)),
         );
       },
       error: (error, _) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ส่ง SOS ไม่สำเร็จ: ${error.toString().replaceFirst('Exception: ', '')}')),
+          SnackBar(content: Text(l10n.homeSosSendFailed(error.toString().replaceFirst('Exception: ', '')))),
         );
       },
       loading: () {},
@@ -473,16 +486,17 @@ class _EmergencyButton extends ConsumerWidget {
   }
 
   Future<void> _confirmResolve(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('ยกเลิกสัญญาณ SOS'),
-        content: const Text('คุณปลอดภัยแล้วใช่ไหม? ระบบจะปิดเหตุการณ์นี้'),
+        title: Text(l10n.homeSosResolveTitle),
+        content: Text(l10n.homeSosResolveContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('ยังไม่ปลอดภัย')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.homeSosNotSafeYet)),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('ใช่ ปลอดภัยแล้ว'),
+            child: Text(l10n.homeSosSafeConfirm),
           ),
         ],
       ),

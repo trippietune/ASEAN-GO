@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/media/media_repository.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/gradient_button.dart';
 import '../../../shared/widgets/photo_picker_grid.dart';
 import '../data/review_model.dart';
@@ -51,22 +52,24 @@ class _WriteReviewDialogState extends ConsumerState<WriteReviewDialog> {
 
   Future<void> _submit() async {
     setState(() => _isSubmitting = true);
-    final error = await ref.read(reviewsControllerProvider(widget.pinId).notifier).submitReview(
+    final success = await ref.read(reviewsControllerProvider(widget.pinId).notifier).submitReview(
           rating: _rating,
           comment: _commentController.text.trim(),
           photoUrls: _photoUrls,
         );
     if (!mounted) return;
     setState(() => _isSubmitting = false);
+    final l10n = AppLocalizations.of(context);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'ขอบคุณสำหรับรีวิวนะ! 🌸')),
+      SnackBar(content: Text(success ? l10n.writeReviewSubmitSuccess : l10n.writeReviewSubmitError)),
     );
-    if (error == null) Navigator.of(context).pop();
+    if (success) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -79,7 +82,7 @@ class _WriteReviewDialogState extends ConsumerState<WriteReviewDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.existing != null ? 'แก้ไขรีวิวของคุณ' : 'เล่าประสบการณ์ให้ฟังหน่อยนะ',
+            widget.existing != null ? l10n.writeReviewEditTitle : l10n.writeReviewNewTitle,
             style: TextStyle(color: AppColors.pinkDark, fontSize: 17, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -89,13 +92,13 @@ class _WriteReviewDialogState extends ConsumerState<WriteReviewDialog> {
             controller: _commentController,
             maxLines: 3,
             maxLength: 2000,
-            decoration: const InputDecoration(
-              hintText: 'เป็นยังไงบ้าง? บอกเล่าให้เพื่อนๆ ฟังหน่อยนะ',
+            decoration: InputDecoration(
+              hintText: l10n.writeReviewCommentHint,
             ),
           ),
           Text(
-            'แนบรูปภาพ',
-            style: TextStyle(color: AppColors.greyDark.withValues(alpha: 0.7), fontSize: 12),
+            l10n.writeReviewAttachPhotos,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12),
           ),
           const SizedBox(height: 8),
           PhotoPickerGrid(
@@ -105,7 +108,7 @@ class _WriteReviewDialogState extends ConsumerState<WriteReviewDialog> {
           ),
           const SizedBox(height: 20),
           GradientButton(
-            label: widget.existing != null ? 'บันทึกการแก้ไข' : 'ส่งรีวิว',
+            label: widget.existing != null ? l10n.writeReviewSaveChanges : l10n.writeReviewSubmit,
             isLoading: _isSubmitting,
             onPressed: _isSubmitting ? null : _submit,
           ),

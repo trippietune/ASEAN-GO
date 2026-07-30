@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/gradient_button.dart';
 import 'proximity_alert_controller.dart';
 
@@ -56,14 +57,16 @@ class _EmergencyContactScreenState extends ConsumerState<EmergencyContactScreen>
             phone: _phoneController.text.trim(),
           );
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('บันทึกผู้ติดต่อฉุกเฉินแล้ว 🍃')),
+        SnackBar(content: Text(l10n.emergencyContactSaved)),
       );
       Navigator.of(context).pop();
     } on DioException catch (e) {
+      final l10n = AppLocalizations.of(context);
       final message = e.response?.data is Map
-          ? (e.response!.data as Map)['error'] as String? ?? 'บันทึกไม่สำเร็จ'
-          : 'บันทึกไม่สำเร็จ';
+          ? (e.response!.data as Map)['error'] as String? ?? l10n.emergencyContactSaveFailed
+          : l10n.emergencyContactSaveFailed;
       setState(() => _error = message);
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -72,8 +75,9 @@ class _EmergencyContactScreenState extends ConsumerState<EmergencyContactScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('ผู้ติดต่อฉุกเฉิน')),
+      appBar: AppBar(title: Text(l10n.settingsEmergencyContact)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -83,28 +87,28 @@ class _EmergencyContactScreenState extends ConsumerState<EmergencyContactScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'เมื่อคุณกดปุ่ม SOS ระบบจะบันทึกพิกัดของคุณและแจ้งไปยังผู้ติดต่อนี้ 🌿',
-                      style: TextStyle(fontSize: 13),
+                    Text(
+                      l10n.emergencyContactExplanation,
+                      style: const TextStyle(fontSize: 13),
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'ชื่อผู้ติดต่อฉุกเฉิน',
-                        prefixIcon: Icon(Icons.person_outline),
+                      decoration: InputDecoration(
+                        labelText: l10n.emergencyContactNameLabel,
+                        prefixIcon: const Icon(Icons.person_outline),
                       ),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'กรุณากรอกชื่อ' : null,
+                      validator: (v) => (v == null || v.trim().isEmpty) ? l10n.emergencyContactNameValidator : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'เบอร์โทรศัพท์',
-                        prefixIcon: Icon(Icons.phone_outlined),
+                      decoration: InputDecoration(
+                        labelText: l10n.emergencyContactPhoneLabel,
+                        prefixIcon: const Icon(Icons.phone_outlined),
                       ),
-                      validator: (v) => (v == null || v.trim().length < 9) ? 'กรุณากรอกเบอร์โทรที่ถูกต้อง' : null,
+                      validator: (v) => (v == null || v.trim().length < 9) ? l10n.emergencyContactPhoneValidator : null,
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
@@ -112,7 +116,7 @@ class _EmergencyContactScreenState extends ConsumerState<EmergencyContactScreen>
                     ],
                     const SizedBox(height: 24),
                     GradientButton(
-                      label: 'บันทึก',
+                      label: l10n.saveLabel,
                       isLoading: _isSaving,
                       onPressed: _isSaving ? null : _submit,
                     ),

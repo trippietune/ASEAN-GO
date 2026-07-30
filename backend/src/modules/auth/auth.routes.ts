@@ -1,7 +1,14 @@
 import { Router } from "express";
 import { z } from "zod";
-import { loginWithEmail, registerWithEmail, signToken } from "./auth.service";
-import { HttpError } from "../../middleware/errorHandler";
+import {
+  loginWithEmail,
+  loginWithFacebook,
+  loginWithGoogle,
+  registerWithEmail,
+  requestPasswordReset,
+  resetPassword,
+  signToken,
+} from "./auth.service";
 
 export const authRouter = Router();
 
@@ -38,11 +45,56 @@ authRouter.post("/login", async (req, res, next) => {
   }
 });
 
-// Placeholder endpoints until real OAuth credentials are configured (see .env.example).
-authRouter.post("/google", (_req, res, next) => {
-  next(new HttpError(501, "Google sign-in is not configured yet"));
+const googleAuthSchema = z.object({ idToken: z.string().min(1) });
+const facebookAuthSchema = z.object({ accessToken: z.string().min(1) });
+
+authRouter.post("/google", async (req, res, next) => {
+  try {
+    const { idToken } = googleAuthSchema.parse(req.body);
+    const user = await loginWithGoogle(idToken);
+    const token = signToken(user.id);
+    res.json({ token, user });
+  } catch (err) {
+    next(err);
+  }
 });
 
-authRouter.post("/facebook", (_req, res, next) => {
-  next(new HttpError(501, "Facebook sign-in is not configured yet"));
+authRouter.post("/facebook", async (req, res, next) => {
+  try {
+    const { accessToken } = facebookAuthSchema.parse(req.body);
+    const user = await loginWithFacebook(accessToken);
+    const token = signToken(user.id);
+    res.json({ token, user });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const forgotPasswordSchema = z.object({ email: z.string().email() });
+const resetPasswordSchema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6),
+  password: z.string().min(8),
+});
+
+authRouter.post("/forgot-password", async (req, res, next) => {
+  try {
+    const { email } = forgotPasswordSchema.parse(req.body);
+    await requestPasswordReset(email);
+    // Same response whether or not the email is registered — see
+    // requestPasswordReset's doc comment for why.
+    res.json({ message: "If that email is registered, a reset code has been sent." });
+  } catch (err) {
+    next(err);
+  }
+});
+
+authRouter.post("/reset-password", async (req, res, next) => {
+  try {
+    const { email, code, password } = resetPasswordSchema.parse(req.body);
+    await resetPassword(email, code, password);
+    res.json({ message: "Password reset successfully." });
+  } catch (err) {
+    next(err);
+  }
 });

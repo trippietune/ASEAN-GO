@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'gradient_button.dart';
 
+/// Icon-led empty state — a large brand-tinted icon inside a soft circular
+/// backdrop standing in for a custom illustration. Swap the icon/backdrop
+/// for a real SVG illustration here if/when one is commissioned; every call
+/// site already just passes an IconData, so that's a one-file change.
 class EmptyStateWidget extends StatelessWidget {
   const EmptyStateWidget({
     super.key,
     required this.icon,
     required this.message,
     this.onRetry,
-    this.retryLabel = 'ลองใหม่อีกครั้ง',
+    this.retryLabel,
   });
 
   final IconData icon;
   final String message;
   final VoidCallback? onRetry;
-  final String retryLabel;
+  final String? retryLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +29,17 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 72, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                color: AppColors.pinkLight.withValues(alpha: 0.4),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Icon(icon, size: 44, color: AppColors.pinkDark),
+            ),
+            const SizedBox(height: 20),
             Text(
               message,
               textAlign: TextAlign.center,
@@ -32,7 +47,11 @@ class EmptyStateWidget extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 20),
-              GradientButton(label: retryLabel, onPressed: onRetry, expand: false),
+              GradientButton(
+                label: retryLabel ?? AppLocalizations.of(context).retryLabel,
+                onPressed: onRetry,
+                expand: false,
+              ),
             ],
           ],
         ),

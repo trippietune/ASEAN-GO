@@ -18,7 +18,7 @@ class XpBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('⭐', style: TextStyle(fontSize: 12)),
+          const Icon(Icons.star_rounded, size: 14, color: AppColors.pinkDark),
           const SizedBox(width: 4),
           Text(
             '$prefix$xp XP',

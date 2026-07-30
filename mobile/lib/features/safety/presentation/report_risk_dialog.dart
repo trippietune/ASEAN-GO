@@ -2,10 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/media/media_repository.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/gradient_button.dart';
 import '../../../shared/widgets/photo_picker_grid.dart';
 import '../data/risk_report_model.dart';
 import 'risk_reports_controller.dart';
+
+/// Localized label for a risk severity, used at UI display seams since the
+/// model itself (data/risk_report_model.dart) has no BuildContext.
+String riskSeverityLabel(AppLocalizations l10n, RiskSeverity severity) {
+  switch (severity) {
+    case RiskSeverity.caution:
+      return l10n.riskSeverityCaution;
+    case RiskSeverity.warning:
+      return l10n.riskSeverityWarning;
+    case RiskSeverity.danger:
+      return l10n.riskSeverityDanger;
+  }
+}
 
 Future<void> showReportRiskDialog(BuildContext context, {required String pinId}) {
   return showModalBottomSheet(
@@ -40,10 +54,11 @@ class _ReportRiskDialogState extends ConsumerState<ReportRiskDialog> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
     final description = _descriptionController.text.trim();
     if (description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('กรุณาอธิบายเหตุการณ์ที่พบหน่อยนะ')),
+        SnackBar(content: Text(l10n.reportRiskDescriptionRequired)),
       );
       return;
     }
@@ -58,13 +73,14 @@ class _ReportRiskDialogState extends ConsumerState<ReportRiskDialog> {
     setState(() => _isSubmitting = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'ขอบคุณที่ช่วยเตือนนักเดินทางคนอื่นนะ 🍃')),
+      SnackBar(content: Text(error ?? l10n.reportRiskThanksMessage)),
     );
     if (error == null) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -77,13 +93,13 @@ class _ReportRiskDialogState extends ConsumerState<ReportRiskDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'รายงานพื้นที่เสี่ยง',
+            l10n.reportRiskTitle,
             style: TextStyle(color: AppColors.pinkDark, fontSize: 17, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
-            'ช่วยเตือนนักเดินทางคนอื่นว่าจุดนี้ควรระวังอะไร',
-            style: TextStyle(color: AppColors.greyDark.withValues(alpha: 0.7), fontSize: 12),
+            l10n.reportRiskSubtitle,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12),
           ),
           const SizedBox(height: 16),
           Wrap(
@@ -91,7 +107,7 @@ class _ReportRiskDialogState extends ConsumerState<ReportRiskDialog> {
             children: [
               for (final severity in RiskSeverity.values)
                 ChoiceChip(
-                  label: Text(severity.label),
+                  label: Text(riskSeverityLabel(l10n, severity)),
                   selected: _severity == severity,
                   onSelected: (_) => setState(() => _severity = severity),
                 ),
@@ -102,13 +118,13 @@ class _ReportRiskDialogState extends ConsumerState<ReportRiskDialog> {
             controller: _descriptionController,
             maxLines: 3,
             maxLength: 1000,
-            decoration: const InputDecoration(
-              hintText: 'เช่น มีคนเรียกเก็บเงินเกินราคา, ทางเดินมืดตอนกลางคืน...',
+            decoration: InputDecoration(
+              hintText: l10n.reportRiskDescriptionHint,
             ),
           ),
           Text(
-            'แนบรูปภาพ (ถ้ามี)',
-            style: TextStyle(color: AppColors.greyDark.withValues(alpha: 0.7), fontSize: 12),
+            l10n.reportRiskAttachPhotos,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12),
           ),
           const SizedBox(height: 8),
           PhotoPickerGrid(
@@ -118,7 +134,7 @@ class _ReportRiskDialogState extends ConsumerState<ReportRiskDialog> {
           ),
           const SizedBox(height: 12),
           GradientButton(
-            label: 'ส่งรายงาน',
+            label: l10n.reportRiskSubmitButton,
             isLoading: _isSubmitting,
             onPressed: _isSubmitting ? null : _submit,
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'proximity_alert_controller.dart';
 
 /// Shows a dismissible warning when the foreground proximity check finds a
@@ -14,10 +15,12 @@ class ProximityAlertBanner extends ConsumerWidget {
     final risk = ref.watch(proximityAlertControllerProvider);
     if (risk == null) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     final message = risk.scamAlertMessage ??
         (risk.reportCount > 0
-            ? 'มีคนรายงานว่าพื้นที่นี้ควรระวัง (${risk.reportCount} รายงาน)'
-            : 'จุดนี้ควรระวังเป็นพิเศษนะ');
+            ? l10n.proximityAlertReportCountMessage(risk.reportCount)
+            : l10n.proximityAlertGenericMessage);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -37,16 +40,16 @@ class ProximityAlertBanner extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'ใกล้ ${risk.name} 🍂',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.greyDark),
+                  l10n.proximityAlertNearbyTitle(risk.name),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: onSurface),
                 ),
                 const SizedBox(height: 2),
-                Text(message, style: const TextStyle(color: AppColors.greyDark, fontSize: 13)),
+                Text(message, style: TextStyle(color: onSurface, fontSize: 13)),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 18, color: AppColors.greyDark),
+            icon: Icon(Icons.close, size: 18, color: onSurface),
             onPressed: () => ref.read(proximityAlertControllerProvider.notifier).dismiss(),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),

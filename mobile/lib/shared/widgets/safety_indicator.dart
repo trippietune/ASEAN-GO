@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 /// Friendly label for a 0-100 safety score: a heart count plus a warm phrase,
 /// instead of a bare number in a progress ring — reads as reassuring rather
@@ -16,10 +17,10 @@ class SafetyIndicator extends StatelessWidget {
     return 1;
   }
 
-  String get _label {
-    if (score >= 70) return 'น่าปลอดภัย';
-    if (score >= 40) return 'ระวังหน่อยนะ';
-    return 'ควรระวังมากๆ';
+  String _labelFor(AppLocalizations l10n) {
+    if (score >= 70) return l10n.safetyLabelSafe;
+    if (score >= 40) return l10n.safetyLabelCaution;
+    return l10n.safetyLabelDanger;
   }
 
   @override
@@ -42,7 +43,7 @@ class SafetyIndicator extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          _label,
+          _labelFor(AppLocalizations.of(context)),
           style: TextStyle(fontSize: size * 0.19, fontWeight: FontWeight.w700, color: color),
         ),
       ],
@@ -56,10 +57,10 @@ class SafetyBar extends StatelessWidget {
 
   final int score;
 
-  String get _emoji {
-    if (score >= 70) return '🌸';
-    if (score >= 40) return '🌱';
-    return '🍂';
+  IconData get _icon {
+    if (score >= 70) return Icons.verified_outlined;
+    if (score >= 40) return Icons.warning_amber_rounded;
+    return Icons.dangerous_outlined;
   }
 
   @override
@@ -68,7 +69,7 @@ class SafetyBar extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(_emoji, style: const TextStyle(fontSize: 14)),
+        Icon(_icon, size: 14, color: color),
         const SizedBox(width: 4),
         Icon(Icons.favorite, size: 12, color: color),
       ],

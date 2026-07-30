@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../data/store_item_model.dart';
 import 'rarity_badge.dart';
 
@@ -34,6 +35,7 @@ class StoreItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -71,14 +73,14 @@ class StoreItemCard extends StatelessWidget {
               item.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.greyDark),
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 4),
             RarityBadge(rarity: item.rarity),
             const SizedBox(height: 8),
             Row(
               children: [
-                const Text('🪙', style: TextStyle(fontSize: 13)),
+                const Icon(Icons.monetization_on, size: 15, color: AppColors.yellowDark),
                 const SizedBox(width: 4),
                 Text('${item.price}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               ],
@@ -94,9 +96,16 @@ class StoreItemCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       alignment: Alignment.center,
-                      child: const Text(
-                        '✅ มีแล้ว',
-                        style: TextStyle(color: AppColors.greyDark, fontWeight: FontWeight.bold, fontSize: 12),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.check_circle, size: 14, color: AppColors.success),
+                          const SizedBox(width: 4),
+                          Text(
+                            l10n.storeItemOwnedLabel,
+                            style: const TextStyle(color: AppColors.greyDark, fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                        ],
                       ),
                     )
                   : FilledButton(
@@ -112,7 +121,7 @@ class StoreItemCard extends StatelessWidget {
                               width: 14,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('ซื้อ'),
+                          : Text(l10n.storeItemBuyButton),
                     ),
             ),
           ],

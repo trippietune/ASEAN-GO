@@ -32,4 +32,26 @@ export const env = {
   cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || undefined,
   cloudinaryApiKey: process.env.CLOUDINARY_API_KEY || undefined,
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET || undefined,
+  googleClientId: process.env.GOOGLE_CLIENT_ID || undefined,
+  facebookAppId: process.env.FACEBOOK_APP_ID || undefined,
+  facebookAppSecret: process.env.FACEBOOK_APP_SECRET || undefined,
+  smtpHost: process.env.SMTP_HOST || undefined,
+  smtpPort: Number(process.env.SMTP_PORT ?? 587),
+  smtpUser: process.env.SMTP_USER || undefined,
+  smtpPassword: process.env.SMTP_PASSWORD || undefined,
+  smtpFrom: process.env.SMTP_FROM || undefined,
+  // Browser-based clients only (the admin dashboard, Flutter web) — the
+  // mobile app sends no Origin header and is unaffected by CORS either way.
+  // Comma-separated. Explicit allowlist required in production; in
+  // dev/test, an unset value means "allow any localhost origin" rather than
+  // a fixed port list — `flutter run -d chrome` binds a different random
+  // port every launch, so hardcoding dev ports here would break it on the
+  // next run regardless of which port happened to work last time.
+  corsAllowedOrigins: process.env.CORS_ALLOWED_ORIGINS
+    ? process.env.CORS_ALLOWED_ORIGINS.split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+    : isProduction
+      ? ["https://asean-go.vercel.app"]
+      : null, // null = allow any http(s)://localhost:* origin, dev/test only
 };

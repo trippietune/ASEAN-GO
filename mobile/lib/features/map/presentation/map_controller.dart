@@ -46,3 +46,23 @@ final nearbyPinsProvider = FutureProvider.autoDispose<List<VerifiedPin>>((ref) a
   final center = await ref.watch(currentPositionProvider.future);
   return ref.watch(pinsRepositoryProvider).fetchNearby(lat: center.lat, lng: center.lng);
 });
+
+enum MapFilter { all, safe, checkpoint, quest, recommended }
+
+final mapFilterProvider = StateProvider.autoDispose<MapFilter>((ref) => MapFilter.all);
+
+bool matchesMapFilter(VerifiedPin pin, MapFilter filter) {
+  return switch (filter) {
+    MapFilter.all => true,
+    MapFilter.safe => pin.safetyScore >= 70,
+    MapFilter.checkpoint => pin.isCheckpoint,
+    MapFilter.quest => pin.hasActiveQuest,
+    MapFilter.recommended => pin.isRecommended,
+  };
+}
+
+final filteredPinsProvider = Provider.autoDispose<AsyncValue<List<VerifiedPin>>>((ref) {
+  final pinsAsync = ref.watch(nearbyPinsProvider);
+  final filter = ref.watch(mapFilterProvider);
+  return pinsAsync.whenData((pins) => pins.where((pin) => matchesMapFilter(pin, filter)).toList());
+});

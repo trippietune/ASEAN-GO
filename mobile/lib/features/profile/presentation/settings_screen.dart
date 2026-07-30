@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/settings_list_tile.dart';
 import '../../../shared/widgets/settings_section_header.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../safety/presentation/emergency_contact_screen.dart';
 import 'about_screen.dart';
 import 'change_password_screen.dart';
+import 'language_settings_screen.dart';
 import 'notification_settings_screen.dart';
 import 'privacy_settings_screen.dart';
 import 'theme_settings_screen.dart';
@@ -37,7 +39,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('อัปโหลดรูปโปรไฟล์ไม่สำเร็จ ลองใหม่อีกทีนะ')),
+        SnackBar(content: Text(AppLocalizations.of(context).avatarUploadError)),
       );
     } finally {
       if (mounted) setState(() => _isUploadingAvatar = false);
@@ -48,9 +50,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final user = authState is AuthAuthenticated ? authState.user : null;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('การตั้งค่า')),
+      appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -108,14 +111,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SettingsSectionHeader(title: 'การตั้งค่าบัญชี', color: AppColors.pink),
+                SettingsSectionHeader(title: l10n.settingsAccountSection, color: AppColors.pink),
                 Card(
                   child: Column(
                     children: [
                       SettingsListTile(
                         icon: Icons.lock_outline,
-                        title: 'เปลี่ยนรหัสผ่าน',
-                        subtitle: 'อัปเดตรหัสผ่านบัญชีของคุณ',
+                        title: l10n.settingsChangePassword,
+                        subtitle: l10n.settingsChangePasswordSubtitle,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
                         ),
@@ -123,8 +126,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const Divider(height: 1),
                       SettingsListTile(
                         icon: Icons.notifications_none,
-                        title: 'การตั้งค่าการแจ้งเตือน',
-                        subtitle: 'จัดการการตั้งค่าการแจ้งเตือน',
+                        title: l10n.settingsNotifications,
+                        subtitle: l10n.settingsNotificationsSubtitle,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()),
                         ),
@@ -132,8 +135,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const Divider(height: 1),
                       SettingsListTile(
                         icon: Icons.privacy_tip_outlined,
-                        title: 'การตั้งค่าความเป็นส่วนตัว',
-                        subtitle: 'จัดการการตั้งค่าความเป็นส่วนตัว',
+                        title: l10n.settingsPrivacy,
+                        subtitle: l10n.settingsPrivacySubtitle,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const PrivacySettingsScreen()),
                         ),
@@ -142,26 +145,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                SettingsSectionHeader(title: 'ความปลอดภัย', color: AppColors.danger),
+                SettingsSectionHeader(title: l10n.settingsSafetySection, color: AppColors.danger),
                 Card(
                   child: SettingsListTile(
                     icon: Icons.contact_phone_outlined,
-                    title: 'ผู้ติดต่อฉุกเฉิน',
-                    subtitle: 'ตั้งค่าผู้ที่จะได้รับแจ้งเมื่อคุณกด SOS',
+                    title: l10n.settingsEmergencyContact,
+                    subtitle: l10n.settingsEmergencyContactSubtitle,
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const EmergencyContactScreen()),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                SettingsSectionHeader(title: 'การตั้งค่าทั่วไป', color: AppColors.yellow.withValues(alpha: 1)),
+                SettingsSectionHeader(title: l10n.settingsGeneralSection, color: AppColors.yellow.withValues(alpha: 1)),
                 Card(
                   child: Column(
                     children: [
                       SettingsListTile(
                         icon: Icons.info_outline,
-                        title: 'เกี่ยวกับเรา',
-                        subtitle: 'เรียนรู้เพิ่มเติมเกี่ยวกับเรา',
+                        title: l10n.settingsAbout,
+                        subtitle: l10n.settingsAboutSubtitle,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const AboutScreen()),
                         ),
@@ -169,10 +172,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const Divider(height: 1),
                       SettingsListTile(
                         icon: Icons.palette_outlined,
-                        title: 'การตั้งค่าธีม',
-                        subtitle: 'จัดการการตั้งค่าธีม',
+                        title: l10n.settingsTheme,
+                        subtitle: l10n.settingsThemeSubtitle,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const ThemeSettingsScreen()),
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      SettingsListTile(
+                        icon: Icons.language_outlined,
+                        title: l10n.settingsLanguage,
+                        subtitle: l10n.settingsLanguageSubtitle,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const LanguageSettingsScreen()),
                         ),
                       ),
                     ],
@@ -185,7 +197,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
                     onPressed: () => ref.read(authControllerProvider.notifier).logout(),
                     icon: const Icon(Icons.logout),
-                    label: const Text('ออกจากระบบ'),
+                    label: Text(l10n.settingsLogout),
                   ),
                 ),
               ],

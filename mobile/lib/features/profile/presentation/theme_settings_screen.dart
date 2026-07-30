@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/theme_controller.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class ThemeSettingsScreen extends ConsumerWidget {
   const ThemeSettingsScreen({super.key});
 
-  String _labelFor(ThemeMode mode) {
+  String _labelFor(AppLocalizations l10n, ThemeMode mode) {
     switch (mode) {
       case ThemeMode.light:
-        return 'สว่าง (Light Mode)';
+        return l10n.themeModeLight;
       case ThemeMode.dark:
-        return 'มืด (Dark Mode)';
+        return l10n.themeModeDark;
       case ThemeMode.system:
-        return 'ตามระบบ (System Default)';
+        return l10n.themeModeSystem;
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMode = ref.watch(themeControllerProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('การตั้งค่าธีม')),
+      appBar: AppBar(title: Text(l10n.settingsTheme)),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Card(
@@ -36,7 +38,7 @@ class ThemeSettingsScreen extends ConsumerWidget {
               children: [
                 for (final mode in ThemeMode.values)
                   RadioListTile<ThemeMode>(
-                    title: Text(_labelFor(mode)),
+                    title: Text(_labelFor(l10n, mode)),
                     value: mode,
                   ),
               ],

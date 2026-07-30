@@ -51,11 +51,12 @@ adminRouter.get("/admin/stats", async (_req, res, next) => {
 
 adminRouter.get("/admin/pins", async (req, res, next) => {
   try {
-    const { search } = z.object({ search: z.string().optional() }).parse(req.query);
+    const { search } = z.object({ search: z.string().max(200).optional() }).parse(req.query);
     const result = await pool.query(
       `SELECT p.id, p.name, p.category, p.country, p.city,
               ST_Y(p.location::geometry) AS lat, ST_X(p.location::geometry) AS lng,
               p.is_verified, p.is_scam_alert, p.scam_alert_message, p.safety_score,
+              p.is_checkpoint, p.is_recommended,
               p.submitted_by, u.display_name AS submitted_by_name,
               p.created_at,
               COALESCE(r.review_count, 0) AS review_count,
@@ -80,6 +81,8 @@ const updatePinAdminSchema = z.object({
   isScamAlert: z.boolean().optional(),
   scamAlertMessage: z.string().max(1000).nullable().optional(),
   safetyScore: z.number().int().min(0).max(100).optional(),
+  isCheckpoint: z.boolean().optional(),
+  isRecommended: z.boolean().optional(),
 });
 
 adminRouter.put("/admin/pins/:id", async (req: AdminRequest, res, next) => {
@@ -95,9 +98,11 @@ adminRouter.put("/admin/pins/:id", async (req: AdminRequest, res, next) => {
            scam_alert_message = CASE WHEN $4::boolean THEN $5 ELSE scam_alert_message END,
            safety_score = COALESCE($6, safety_score),
            approved_by = CASE WHEN $2 = TRUE THEN $7 ELSE approved_by END,
+           is_checkpoint = COALESCE($8, is_checkpoint),
+           is_recommended = COALESCE($9, is_recommended),
            updated_at = now()
        WHERE id = $1
-       RETURNING id, name, is_verified, is_scam_alert, scam_alert_message, safety_score`,
+       RETURNING id, name, is_verified, is_scam_alert, scam_alert_message, safety_score, is_checkpoint, is_recommended`,
       [
         pinId,
         body.isVerified ?? null,
@@ -106,6 +111,8 @@ adminRouter.put("/admin/pins/:id", async (req: AdminRequest, res, next) => {
         body.scamAlertMessage ?? null,
         body.safetyScore ?? null,
         req.userId,
+        body.isCheckpoint ?? null,
+        body.isRecommended ?? null,
       ]
     );
     if (!result.rowCount) throw new HttpError(404, "Pin not found");
@@ -158,10 +165,10 @@ const createQuestSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
   questType: z.enum(["daily", "weekly", "recommended"]).default("daily"),
-  xpReward: z.number().int().min(0).default(0),
-  coinReward: z.number().int().min(0).default(0),
+  xpReward: z.number().int().min(0).max(100_000).default(0),
+  coinReward: z.number().int().min(0).max(100_000).default(0),
   pinId: z.string().uuid().optional(),
-  country: z.string().optional(),
+  country: z.string().max(100).optional(),
   activeUntil: z.string().datetime().optional(),
 });
 
@@ -193,10 +200,10 @@ const updateQuestSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).nullable().optional(),
   questType: z.enum(["daily", "weekly", "recommended"]).optional(),
-  xpReward: z.number().int().min(0).optional(),
-  coinReward: z.number().int().min(0).optional(),
+  xpReward: z.number().int().min(0).max(100_000).optional(),
+  coinReward: z.number().int().min(0).max(100_000).optional(),
   pinId: z.string().uuid().nullable().optional(),
-  country: z.string().nullable().optional(),
+  country: z.string().max(100).nullable().optional(),
   activeUntil: z.string().datetime().nullable().optional(),
 });
 
@@ -258,7 +265,7 @@ adminRouter.delete("/admin/quests/:id", requireAdmin, async (req, res, next) => 
 
 adminRouter.get("/admin/users", async (req, res, next) => {
   try {
-    const { search } = z.object({ search: z.string().optional() }).parse(req.query);
+    const { search } = z.object({ search: z.string().max(200).optional() }).parse(req.query);
     const result = await pool.query(
       `SELECT id, email, display_name, role, auth_provider, xp, level,
               is_premium, coin_balance, created_at
@@ -420,7 +427,7 @@ adminRouter.post("/admin/sos-events/:id/resolve", async (req, res, next) => {
 
 adminRouter.get("/admin/emergency-contacts", async (req, res, next) => {
   try {
-    const { search } = z.object({ search: z.string().optional() }).parse(req.query);
+    const { search } = z.object({ search: z.string().max(200).optional() }).parse(req.query);
     const result = await pool.query(
       `SELECT id, email, display_name, emergency_contact_name, emergency_contact_phone
        FROM users

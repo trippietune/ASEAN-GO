@@ -21,7 +21,7 @@ class SettingsListTile extends StatelessWidget {
       leading: Icon(icon, color: AppColors.pink, size: 24),
       title: Text(
         title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.greyDark),
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface),
       ),
       subtitle: Text(subtitle, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),

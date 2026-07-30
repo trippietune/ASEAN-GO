@@ -1,37 +1,41 @@
 import 'package:flutter/material.dart';
 
-/// Warm, pastel palette: soft pink as the primary accent, cream/soft-yellow
-/// as the secondary — chosen to read as friendly and human rather than
-/// high-tech. Field names are kept stable (pink/yellow/etc.) even though the
-/// values are now pastel, so call sites didn't need to change when the
-/// palette shifted from a saturated hot-pink theme to this one.
+/// Professional, saturated brand palette — vivid pink as the primary accent,
+/// gold as the secondary. Field names are kept stable from the previous
+/// pastel iteration (pink/yellow/etc.) even though the values are now fully
+/// saturated Material-style tones, so most call sites didn't need to change
+/// when the palette shifted back to a polished, professional look.
 abstract final class AppColors {
-  static const pink = Color(0xFFE8A0B4); // dustier rose, not full pastel-baby-pink
-  static const pinkLight = Color(0xFFF4C6D2);
-  static const pinkDark = Color(0xFFC97C90);
+  static const pink = Color(0xFFE91E63); // primary
+  static const pinkLight = Color(0xFFF8BBD0); // primary light — backgrounds, hover state
+  static const pinkDark = Color(0xFFC2185B); // primary dark — emphasis, active state
 
-  static const yellow = Color(0xFFF0D9A6); // soft sandy cream, not saturated yellow
-  static const yellowSoft = Color(0xFFF7E8C8);
-  static const yellowPale = Color(0xFFFFF8EC);
+  static const yellow = Color(0xFFF9A825); // secondary — highlight, XP, coin
+  static const yellowSoft = Color(0xFFFFECB3); // secondary light, warmer — gradient partner to pinkLight
+  static const yellowPale = Color(0xFFFFF3E0); // secondary light, paler — card/section backgrounds
+  static const yellowDark = Color(0xFFF57F17); // secondary dark — emphasis
 
-  static const white = Color(0xFFFFFDF8);
-  static const greyLight = Color(0xFFF7F2EA);
-  static const greyDark = Color(0xFF6D5A50); // warm brown, not neutral grey
+  static const white = Color(0xFFFFFFFF); // surface
+  static const background = Color(0xFFFAFAFA);
+  static const greyLight = Color(0xFFF5F5F5); // surface dark / secondary background
+  static const greyDark = Color(0xFF212121); // text primary
 
-  static const success = Color(0xFFA3C9A8); // muted sage
-  static const danger = Color(0xFFE0A8A0); // dusty terracotta, not alarm-red
-  static const warning = Color(0xFFEBC98F);
+  static const textSecondary = Color(0xFF757575);
+  static const textHint = Color(0xFFBDBDBD);
 
-  // Dark-mode surfaces: warm charcoal/espresso rather than pure neutral black,
-  // so dark mode keeps the same cozy feel instead of turning "techy".
-  static const darkBackground = Color(0xFF2A2320);
-  static const darkSurface = Color(0xFF352C27);
-  static const darkSurfaceAlt = Color(0xFF413530);
-  static const darkOnSurfaceMuted = Color(0xFFD8C9BE);
+  static const success = Color(0xFF43A047);
+  static const danger = Color(0xFFE53935);
+  static const warning = Color(0xFFFB8C00);
+  static const info = Color(0xFF1E88E5); // also used for checkpoint map markers
+  static const questPurple = Color(0xFF8E24AA); // quest-linked map markers only
+
+  // Dark-mode surfaces: neutral charcoal, standard Material dark-theme tones.
+  static const darkBackground = Color(0xFF121212);
+  static const darkSurface = Color(0xFF1E1E1E);
+  static const darkSurfaceAlt = Color(0xFF2A2A2A);
+  static const darkOnSurfaceMuted = Color(0xFFBDBDBD);
 
   /// Safety score -> semantic color, shared by markers, gauges, and badges.
-  /// Kept muted (sage/sand/terracotta) instead of stoplight red/yellow/green
-  /// so a "be careful" pin still reads as gentle, not alarming.
   static Color safetyScoreColor(int score) {
     if (score >= 70) return success;
     if (score >= 40) return warning;

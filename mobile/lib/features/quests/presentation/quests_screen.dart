@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 import '../../../shared/widgets/xp_gain_overlay.dart';
@@ -20,31 +21,32 @@ class _QuestsScreenState extends ConsumerState<QuestsScreen> {
   String? _submittingQuestId;
 
   Future<void> _completeQuest(Quest quest, BuildContext cardContext) async {
+    final l10n = AppLocalizations.of(context);
     setState(() => _submittingQuestId = quest.id);
-    final xpAwarded = await ref.read(questsControllerProvider.notifier).completeQuest(quest);
+    final result = await ref.read(questsControllerProvider.notifier).completeQuest(quest);
     if (!mounted) return;
     setState(() => _submittingQuestId = null);
 
-    if (xpAwarded != null) {
-      final user = ref.read(authControllerProvider);
-      if (user is AuthAuthenticated) {
-        ref.read(authControllerProvider.notifier).applyXpGain(
-              xp: user.user.xp + xpAwarded,
-              level: (user.user.xp + xpAwarded) ~/ 100 + 1,
-              coinBalance: user.user.coinBalance + quest.coinReward,
-            );
-      }
+    if (result != null) {
+      // Trust the server's final xp/level/coinBalance rather than
+      // recomputing the level curve on the client — the backend is the only
+      // place that formula should live.
+      ref.read(authControllerProvider.notifier).applyXpGain(
+            xp: result.xp,
+            level: result.level,
+            coinBalance: result.coinBalance,
+          );
 
       if (mounted && cardContext.mounted) {
         final box = cardContext.findRenderObject() as RenderBox?;
         if (box != null) {
           final topRight = box.localToGlobal(Offset(box.size.width - 60, box.size.height / 2));
-          showXpGainOverlay(context, anchor: topRight, xp: xpAwarded);
+          showXpGainOverlay(context, anchor: topRight, xp: result.xpAwarded);
         }
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ภารกิจนี้ทำไปแล้ว หรือลองใหม่อีกทีนะ')),
+        SnackBar(content: Text(l10n.questAlreadyCompletedOrRetry)),
       );
     }
   }
@@ -52,9 +54,10 @@ class _QuestsScreenState extends ConsumerState<QuestsScreen> {
   @override
   Widget build(BuildContext context) {
     final questsAsync = ref.watch(questsControllerProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('ภารกิจประจำวัน 🎯')),
+      appBar: AppBar(title: Text(l10n.questsScreenTitle)),
       body: questsAsync.when(
         loading: () => ListView(
           padding: const EdgeInsets.all(16),
@@ -68,14 +71,14 @@ class _QuestsScreenState extends ConsumerState<QuestsScreen> {
         ),
         error: (err, _) => EmptyStateWidget(
           icon: Icons.error_outline,
-          message: 'ยังโหลดภารกิจไม่ได้เลย ลองใหม่อีกทีนะ\n$err',
+          message: l10n.questsLoadError(err.toString()),
           onRetry: () => ref.read(questsControllerProvider.notifier).refresh(),
         ),
         data: (questsState) {
           if (questsState.quests.isEmpty) {
-            return const EmptyStateWidget(
+            return EmptyStateWidget(
               icon: Icons.checklist_rtl,
-              message: 'ยังไม่มีภารกิจตอนนี้เลย กลับมาดูใหม่เร็วๆ นี้นะ',
+              message: l10n.questsEmptyState,
             );
           }
           return RefreshIndicator(
@@ -113,6 +116,7 @@ class _QuestStatsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final remaining = questsState.totalCount - questsState.completedCount;
     final allDone = questsState.totalCount > 0 && remaining == 0;
 
@@ -121,17 +125,48 @@ class _QuestStatsHeader extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: _StatPill(emoji: '✅', value: '${questsState.completedCount}', label: 'ทำแล้ว')),
+            Expanded(
+              child: _StatPill(
+                icon: Icons.check_circle,
+                iconColor: AppColors.success,
+                value: '${questsState.completedCount}',
+                label: l10n.questStatCompleted,
+              ),
+            ),
             const SizedBox(width: 10),
-            Expanded(child: _StatPill(emoji: '🌱', value: '$remaining', label: 'เหลืออีก')),
+            Expanded(
+              child: _StatPill(
+                icon: Icons.pending_actions,
+                iconColor: AppColors.pinkDark,
+                value: '$remaining',
+                label: l10n.questStatRemaining,
+              ),
+            ),
             const SizedBox(width: 10),
-            Expanded(child: _StatPill(emoji: '⭐', value: '${questsState.totalCount}', label: 'ทั้งหมด')),
+            Expanded(
+              child: _StatPill(
+                icon: Icons.star,
+                iconColor: AppColors.yellow,
+                value: '${questsState.totalCount}',
+                label: l10n.questStatTotal,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 10),
-        Text(
-          allDone ? 'เก่งมาก ทำครบทุกภารกิจแล้ว! 🎉' : 'ทำต่ออีกนิดนะ สู้ๆ 🌿',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+        Row(
+          children: [
+            Icon(
+              allDone ? Icons.celebration_outlined : Icons.flag_outlined,
+              size: 16,
+              color: Colors.grey.shade600,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              allDone ? l10n.questsAllCompletedBanner : l10n.questsKeepGoingBanner,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+            ),
+          ],
         ),
       ],
     );
@@ -139,9 +174,10 @@ class _QuestStatsHeader extends StatelessWidget {
 }
 
 class _StatPill extends StatelessWidget {
-  const _StatPill({required this.emoji, required this.value, required this.label});
+  const _StatPill({required this.icon, required this.iconColor, required this.value, required this.label});
 
-  final String emoji;
+  final IconData icon;
+  final Color iconColor;
   final String value;
   final String label;
 
@@ -152,7 +188,7 @@ class _StatPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Column(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 20)),
+            Icon(icon, size: 22, color: iconColor),
             const SizedBox(height: 4),
             Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.pinkDark)),
             Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),

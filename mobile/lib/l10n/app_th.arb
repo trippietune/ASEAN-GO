@@ -1,0 +1,1282 @@
+{
+  "@@locale": "th",
+  "appTagline": "เพื่อนเดินทางที่คอยดูแลคุณ",
+  "@appTagline": {
+    "description": "Tagline shown under the logo on splash and login"
+  },
+  "loginWelcomeTitle": "ยินดีต้อนรับสู่ AseanGo",
+  "@loginWelcomeTitle": {
+    "description": "Login screen heading"
+  },
+  "loginWelcomeSubtitle": "เพื่อนเดินทางที่คอยดูแลคุณ ไปเที่ยวด้วยกันนะ",
+  "@loginWelcomeSubtitle": {
+    "description": "Login screen subheading"
+  },
+  "displayNameLabel": "ชื่อที่แสดง",
+  "@displayNameLabel": {
+    "description": "Register form display name field label"
+  },
+  "displayNameValidator": "กรุณากรอกชื่อนะ",
+  "@displayNameValidator": {
+    "description": "Validation error when display name is empty"
+  },
+  "emailLabel": "อีเมล",
+  "@emailLabel": {
+    "description": "Email field label"
+  },
+  "emailRequiredValidator": "กรุณากรอกอีเมล",
+  "@emailRequiredValidator": {
+    "description": "Validation error when email field is empty"
+  },
+  "emailValidator": "กรอกอีเมลให้ถูกต้องด้วยนะ",
+  "@emailValidator": {
+    "description": "Validation error for invalid email format"
+  },
+  "passwordLabel": "รหัสผ่าน",
+  "@passwordLabel": {
+    "description": "Password field label"
+  },
+  "passwordValidator": "อย่างน้อย 8 ตัวอักษรนะ",
+  "@passwordValidator": {
+    "description": "Validation error for password too short (used on signup)"
+  },
+  "passwordRequiredValidator": "กรุณากรอกรหัสผ่าน",
+  "@passwordRequiredValidator": {
+    "description": "Validation error when password field is empty (used on login, which only checks presence, not length)"
+  },
+  "registerSubmit": "สมัครสมาชิกเลย",
+  "@registerSubmit": {
+    "description": "Register submit button label"
+  },
+  "loginSubmit": "มาเที่ยวด้วยกันนะ",
+  "@loginSubmit": {
+    "description": "Login submit button label"
+  },
+  "switchToLogin": "มีบัญชีอยู่แล้ว? เข้าสู่ระบบเลย",
+  "@switchToLogin": {
+    "description": "Link shown in register mode to switch to login"
+  },
+  "switchToRegister": "ยังไม่มีบัญชีใช่ไหม? สมัครกันเถอะ",
+  "@switchToRegister": {
+    "description": "Link shown in login mode to switch to register"
+  },
+  "loginFailedFallback": "เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@loginFailedFallback": {
+    "description": "Fallback error message when login fails with no specific backend message"
+  },
+  "registerFailedFallback": "สมัครสมาชิกไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@registerFailedFallback": {
+    "description": "Fallback error message when registration fails with no specific backend message"
+  },
+  "rememberMeLabel": "จำฉันไว้",
+  "@rememberMeLabel": {
+    "description": "Remember-me checkbox label on login screen"
+  },
+  "forgotPasswordLink": "ลืมรหัสผ่าน?",
+  "@forgotPasswordLink": {
+    "description": "Forgot password link on login screen"
+  },
+  "confirmPasswordLabel": "ยืนยันรหัสผ่าน",
+  "@confirmPasswordLabel": {
+    "description": "Confirm password field label on signup screen"
+  },
+  "confirmPasswordMismatch": "รหัสผ่านไม่ตรงกัน",
+  "@confirmPasswordMismatch": {
+    "description": "Validation error when confirm password doesn't match password"
+  },
+  "signupTitle": "สมัครสมาชิก",
+  "@signupTitle": {
+    "description": "Signup screen app bar title"
+  },
+  "signupHeading": "สร้างบัญชีใหม่",
+  "@signupHeading": {
+    "description": "Signup screen heading"
+  },
+  "signupSubheading": "มาเริ่มการผจญภัยไปด้วยกันนะ",
+  "@signupSubheading": {
+    "description": "Signup screen subheading"
+  },
+  "forgotPasswordTitle": "ลืมรหัสผ่าน",
+  "@forgotPasswordTitle": {
+    "description": "Forgot password screen app bar title"
+  },
+  "forgotPasswordHeading": "ลืมรหัสผ่านใช่ไหม?",
+  "@forgotPasswordHeading": {
+    "description": "Forgot password screen heading"
+  },
+  "forgotPasswordInstructions": "กรอกอีเมลที่ใช้สมัครไว้ เราจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ให้นะ",
+  "@forgotPasswordInstructions": {
+    "description": "Forgot password screen instructions text"
+  },
+  "forgotPasswordSubmitButton": "ส่งลิงก์ตั้งรหัสผ่านใหม่",
+  "@forgotPasswordSubmitButton": {
+    "description": "Forgot password screen submit button label"
+  },
+  "forgotPasswordNotAvailable": "ฟีเจอร์นี้ยังไม่พร้อมใช้งานตอนนี้นะ กรุณาติดต่อทีมงานเพื่อขอความช่วยเหลือ",
+  "@forgotPasswordNotAvailable": {
+    "description": "Message shown when forgot-password is submitted but the backend doesn't support it yet"
+  },
+  "forgotPasswordCodeSentMessage": "ถ้าอีเมลนี้ลงทะเบียนไว้ เราได้ส่งรหัส 6 หลักไปให้แล้วนะ",
+  "@forgotPasswordCodeSentMessage": {
+    "description": "Message shown after submitting forgot-password email, before entering the reset code"
+  },
+  "forgotPasswordRequestFailed": "ส่งรหัสรีเซ็ตไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@forgotPasswordRequestFailed": {
+    "description": "Error message shown when the forgot-password request fails (network/server error)"
+  },
+  "resetPasswordHeading": "กรอกรหัสที่ได้รับ",
+  "@resetPasswordHeading": {
+    "description": "Heading on the reset-password step (step 2 of forgot password flow)"
+  },
+  "resetPasswordInstructions": "กรอกรหัส 6 หลักที่เราส่งไปที่ {email} แล้วตั้งรหัสผ่านใหม่",
+  "@resetPasswordInstructions": {
+    "description": "Instructions on the reset-password step, includes the email address the code was sent to",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "resetPasswordCodeLabel": "รหัสรีเซ็ต",
+  "@resetPasswordCodeLabel": {
+    "description": "Reset code text field label"
+  },
+  "resetPasswordCodeValidator": "กรอกรหัส 6 หลักจากอีเมลของคุณ",
+  "@resetPasswordCodeValidator": {
+    "description": "Validation error when reset code field is empty or not 6 digits"
+  },
+  "resetPasswordNewPasswordLabel": "รหัสผ่านใหม่",
+  "@resetPasswordNewPasswordLabel": {
+    "description": "New password text field label on reset-password step"
+  },
+  "resetPasswordSubmitButton": "รีเซ็ตรหัสผ่าน",
+  "@resetPasswordSubmitButton": {
+    "description": "Submit button label on reset-password step"
+  },
+  "resetPasswordSuccessMessage": "รีเซ็ตรหัสผ่านสำเร็จแล้ว กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่",
+  "@resetPasswordSuccessMessage": {
+    "description": "Message shown after successfully resetting the password"
+  },
+  "resetPasswordFailedFallback": "รีเซ็ตรหัสผ่านไม่สำเร็จ ตรวจสอบรหัสแล้วลองใหม่อีกทีนะ",
+  "@resetPasswordFailedFallback": {
+    "description": "Fallback error message when reset-password fails with no specific backend message"
+  },
+  "resetPasswordResendCode": "ไม่ได้รับรหัสใช่ไหม? ส่งอีกครั้ง",
+  "@resetPasswordResendCode": {
+    "description": "Link to resend the reset code on the reset-password step"
+  },
+  "resetPasswordResendSuccess": "ส่งรหัสใหม่แล้วนะ",
+  "@resetPasswordResendSuccess": {
+    "description": "Snackbar shown after successfully resending the reset code"
+  },
+  "backToLoginLink": "กลับไปหน้าเข้าสู่ระบบ",
+  "@backToLoginLink": {
+    "description": "Link back to login screen"
+  },
+  "continueWithGoogle": "เข้าสู่ระบบด้วย Google",
+  "@continueWithGoogle": {
+    "description": "Google social login button label"
+  },
+  "continueWithFacebook": "เข้าสู่ระบบด้วย Facebook",
+  "@continueWithFacebook": {
+    "description": "Facebook social login button label"
+  },
+  "signUpWithGoogle": "สมัครสมาชิกด้วย Google",
+  "@signUpWithGoogle": {
+    "description": "Google social sign-up button label"
+  },
+  "signUpWithFacebook": "สมัครสมาชิกด้วย Facebook",
+  "@signUpWithFacebook": {
+    "description": "Facebook social sign-up button label"
+  },
+  "orDivider": "หรือ",
+  "@orDivider": {
+    "description": "Divider text between email form and social login buttons"
+  },
+  "socialLoginFailedFallback": "เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@socialLoginFailedFallback": {
+    "description": "Fallback error message when social login fails with no specific backend message"
+  },
+  "passwordStrengthWeak": "อ่อน",
+  "@passwordStrengthWeak": {
+    "description": "Password strength indicator label: weak"
+  },
+  "passwordStrengthMedium": "ปานกลาง",
+  "@passwordStrengthMedium": {
+    "description": "Password strength indicator label: medium"
+  },
+  "passwordStrengthStrong": "แข็งแรง",
+  "@passwordStrengthStrong": {
+    "description": "Password strength indicator label: strong"
+  },
+  "termsAgreementPrefix": "ฉันยอมรับ",
+  "@termsAgreementPrefix": {
+    "description": "Text before the terms-of-service link in the agreement checkbox"
+  },
+  "termsOfServiceLink": "ข้อกำหนดการให้บริการ",
+  "@termsOfServiceLink": {
+    "description": "Terms of service link label"
+  },
+  "termsAgreementRequired": "กรุณายอมรับข้อกำหนดการให้บริการก่อนนะ",
+  "@termsAgreementRequired": {
+    "description": "Validation message shown when submitting signup without accepting terms"
+  },
+  "termsOfServiceTitle": "ข้อกำหนดการให้บริการ",
+  "@termsOfServiceTitle": {
+    "description": "Terms of service screen app bar title"
+  },
+  "termsOfServicePlaceholder": "เนื้อหาข้อกำหนดการให้บริการฉบับเต็มจะประกาศให้ทราบเร็ว ๆ นี้",
+  "@termsOfServicePlaceholder": {
+    "description": "Placeholder body text on the terms of service screen until real legal copy is written"
+  },
+  "noAccountYetPrompt": "ยังไม่มีบัญชีใช่ไหม?",
+  "@noAccountYetPrompt": {
+    "description": "Prompt text before the sign-up link on login screen"
+  },
+  "haveAccountPrompt": "มีบัญชีอยู่แล้ว?",
+  "@haveAccountPrompt": {
+    "description": "Prompt text before the log-in link on signup screen"
+  },
+  "logInLinkLabel": "เข้าสู่ระบบ",
+  "@logInLinkLabel": {
+    "description": "Plain 'Log in' link label (as opposed to loginSubmit's adventurous CTA phrasing)"
+  },
+  "retryLabel": "ลองใหม่อีกครั้ง",
+  "@retryLabel": {
+    "description": "Generic retry button label used across empty/error states"
+  },
+  "languageSettingsTitle": "การตั้งค่าภาษา",
+  "@languageSettingsTitle": {
+    "description": "Language settings screen title"
+  },
+  "languageSystemDefault": "ตามระบบ (System Default)",
+  "@languageSystemDefault": {
+    "description": "Follow-system-locale option label"
+  },
+  "languageThai": "ไทย",
+  "@languageThai": {
+    "description": "Thai language option label"
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "English language option label"
+  },
+  "settingsTitle": "การตั้งค่า",
+  "@settingsTitle": {
+    "description": "Settings screen app bar title"
+  },
+  "settingsAccountSection": "การตั้งค่าบัญชี",
+  "@settingsAccountSection": {
+    "description": "Settings section header"
+  },
+  "settingsChangePassword": "เปลี่ยนรหัสผ่าน",
+  "@settingsChangePassword": {
+    "description": "Settings list item title"
+  },
+  "settingsChangePasswordSubtitle": "อัปเดตรหัสผ่านบัญชีของคุณ",
+  "@settingsChangePasswordSubtitle": {
+    "description": "Settings list item subtitle"
+  },
+  "settingsNotifications": "การตั้งค่าการแจ้งเตือน",
+  "@settingsNotifications": {
+    "description": "Settings list item title"
+  },
+  "settingsNotificationsSubtitle": "จัดการการตั้งค่าการแจ้งเตือน",
+  "@settingsNotificationsSubtitle": {
+    "description": "Settings list item subtitle"
+  },
+  "settingsPrivacy": "การตั้งค่าความเป็นส่วนตัว",
+  "@settingsPrivacy": {
+    "description": "Settings list item title"
+  },
+  "settingsPrivacySubtitle": "จัดการการตั้งค่าความเป็นส่วนตัว",
+  "@settingsPrivacySubtitle": {
+    "description": "Settings list item subtitle"
+  },
+  "settingsSafetySection": "ความปลอดภัย",
+  "@settingsSafetySection": {
+    "description": "Settings section header"
+  },
+  "settingsEmergencyContact": "ผู้ติดต่อฉุกเฉิน",
+  "@settingsEmergencyContact": {
+    "description": "Settings list item title"
+  },
+  "settingsEmergencyContactSubtitle": "ตั้งค่าผู้ที่จะได้รับแจ้งเมื่อคุณกด SOS",
+  "@settingsEmergencyContactSubtitle": {
+    "description": "Settings list item subtitle"
+  },
+  "settingsGeneralSection": "การตั้งค่าทั่วไป",
+  "@settingsGeneralSection": {
+    "description": "Settings section header"
+  },
+  "settingsAbout": "เกี่ยวกับเรา",
+  "@settingsAbout": {
+    "description": "Settings list item title"
+  },
+  "settingsAboutSubtitle": "เรียนรู้เพิ่มเติมเกี่ยวกับเรา",
+  "@settingsAboutSubtitle": {
+    "description": "Settings list item subtitle"
+  },
+  "settingsTheme": "การตั้งค่าธีม",
+  "@settingsTheme": {
+    "description": "Settings list item title"
+  },
+  "settingsThemeSubtitle": "จัดการการตั้งค่าธีม",
+  "@settingsThemeSubtitle": {
+    "description": "Settings list item subtitle"
+  },
+  "themeModeLight": "สว่าง (Light Mode)",
+  "@themeModeLight": {
+    "description": "Theme settings option label: light mode"
+  },
+  "themeModeDark": "มืด (Dark Mode)",
+  "@themeModeDark": {
+    "description": "Theme settings option label: dark mode"
+  },
+  "themeModeSystem": "ตามระบบ (System Default)",
+  "@themeModeSystem": {
+    "description": "Theme settings option label: follow system"
+  },
+  "settingsLanguage": "การตั้งค่าภาษา",
+  "@settingsLanguage": {
+    "description": "Settings list item title for language option"
+  },
+  "settingsLanguageSubtitle": "เปลี่ยนภาษาที่ใช้ในแอป",
+  "@settingsLanguageSubtitle": {
+    "description": "Settings list item subtitle for language option"
+  },
+  "settingsLogout": "ออกจากระบบ",
+  "@settingsLogout": {
+    "description": "Logout button label"
+  },
+  "avatarUploadError": "อัปโหลดรูปโปรไฟล์ไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@avatarUploadError": {
+    "description": "Snackbar shown when avatar upload fails"
+  },
+  "safetyLabelSafe": "น่าปลอดภัย",
+  "@safetyLabelSafe": {
+    "description": "Safety indicator label for score >= 70"
+  },
+  "safetyLabelCaution": "ระวังหน่อยนะ",
+  "@safetyLabelCaution": {
+    "description": "Safety indicator label for score 40-69"
+  },
+  "safetyLabelDanger": "ควรระวังมากๆ",
+  "@safetyLabelDanger": {
+    "description": "Safety indicator label for score < 40"
+  },
+  "photoUploadError": "อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@photoUploadError": {
+    "description": "Snackbar shown when photo upload fails"
+  },
+  "photoSourceCamera": "ถ่ายรูป",
+  "@photoSourceCamera": {
+    "description": "Bottom sheet option to take a photo with the camera"
+  },
+  "photoSourceGallery": "เลือกจากคลังภาพ",
+  "@photoSourceGallery": {
+    "description": "Bottom sheet option to pick a photo from the gallery"
+  },
+  "mapLocationNotFound": "หาตำแหน่งคุณไม่เจอเลย ขอแสดงจุดเริ่มต้นแทนนะ",
+  "@mapLocationNotFound": {
+    "description": "Snackbar shown when GPS location can't be found, falling back to default map center"
+  },
+  "mapNearbyPinsTitle": "จุดน่าไปแถวนี้",
+  "@mapNearbyPinsTitle": {
+    "description": "Map screen app bar title"
+  },
+  "mapLoadPinsError": "ยังโหลดจุดใกล้เคียงไม่ได้เลย ลองใหม่อีกทีนะ\n{error}",
+  "@mapLoadPinsError": {
+    "description": "Error text shown when nearby pins fail to load",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "mapAddPinLabel": "เพิ่มจุด",
+  "@mapAddPinLabel": {
+    "description": "FAB label to add a new map pin"
+  },
+  "mapSafetyLegendSafe": "ปลอดภัย",
+  "@mapSafetyLegendSafe": {
+    "description": "Map safety legend label for safe areas"
+  },
+  "mapSafetyLegendCaution": "ควรระวัง",
+  "@mapSafetyLegendCaution": {
+    "description": "Map safety legend label for areas needing caution"
+  },
+  "mapSafetyLegendDanger": "อันตราย",
+  "@mapSafetyLegendDanger": {
+    "description": "Map safety legend label for dangerous areas"
+  },
+  "mapLegendCheckpoint": "จุดเช็คพอยท์",
+  "@mapLegendCheckpoint": {
+    "description": "Map legend label for checkpoint pins"
+  },
+  "mapLegendQuest": "มีเควสอยู่",
+  "@mapLegendQuest": {
+    "description": "Map legend label for pins with an active quest"
+  },
+  "mapLegendRecommended": "แนะนำ",
+  "@mapLegendRecommended": {
+    "description": "Map legend label for admin-recommended pins"
+  },
+  "mapLegendToggleShow": "แสดงคำอธิบายสัญลักษณ์",
+  "@mapLegendToggleShow": {
+    "description": "Button label to show the map legend"
+  },
+  "mapLegendToggleHide": "ซ่อนคำอธิบายสัญลักษณ์",
+  "@mapLegendToggleHide": {
+    "description": "Button label to hide the map legend"
+  },
+  "mapFilterAll": "ทั้งหมด",
+  "@mapFilterAll": {
+    "description": "Map filter chip label: show all pins"
+  },
+  "mapFilterSafe": "ปลอดภัย",
+  "@mapFilterSafe": {
+    "description": "Map filter chip label: safe pins only"
+  },
+  "mapFilterCheckpoint": "จุดเช็คพอยท์",
+  "@mapFilterCheckpoint": {
+    "description": "Map filter chip label: checkpoint pins only"
+  },
+  "mapFilterQuest": "เควส",
+  "@mapFilterQuest": {
+    "description": "Map filter chip label: pins with an active quest"
+  },
+  "mapFilterRecommended": "แนะนำ",
+  "@mapFilterRecommended": {
+    "description": "Map filter chip label: admin-recommended pins only"
+  },
+  "mapCategoryFood": "ร้านอาหาร",
+  "@mapCategoryFood": {
+    "description": "Pin category label: food/restaurant"
+  },
+  "mapCategoryShop": "ร้านค้า",
+  "@mapCategoryShop": {
+    "description": "Pin category label: shop"
+  },
+  "mapCategoryAttraction": "สถานที่ท่องเที่ยว",
+  "@mapCategoryAttraction": {
+    "description": "Pin category label: tourist attraction"
+  },
+  "mapCategoryTransport": "การเดินทาง",
+  "@mapCategoryTransport": {
+    "description": "Pin category label: transport"
+  },
+  "mapCategoryLodging": "ที่พัก",
+  "@mapCategoryLodging": {
+    "description": "Pin category label: lodging"
+  },
+  "mapCategoryOther": "อื่นๆ",
+  "@mapCategoryOther": {
+    "description": "Pin category label: other"
+  },
+  "mapCheckpointSheetTitle": "จุดเช็คพอยท์",
+  "@mapCheckpointSheetTitle": {
+    "description": "Bottom sheet title when tapping a checkpoint marker"
+  },
+  "mapCheckpointSheetDescription": "เช็คอินที่นี่เพื่อรับ XP",
+  "@mapCheckpointSheetDescription": {
+    "description": "Bottom sheet description for a checkpoint pin"
+  },
+  "mapCheckpointCheckInButton": "เช็คอิน",
+  "@mapCheckpointCheckInButton": {
+    "description": "Check-in button label in the checkpoint bottom sheet"
+  },
+  "mapCheckpointAlreadyDoneToday": "เช็คอินที่นี่ไปแล้ววันนี้นะ",
+  "@mapCheckpointAlreadyDoneToday": {
+    "description": "Message shown when the user already checked in at this checkpoint today"
+  },
+  "mapCheckpointCheckInSuccess": "เช็คอินสำเร็จ! ได้ไป +{xp} XP",
+  "@mapCheckpointCheckInSuccess": {
+    "description": "Snackbar shown after a successful checkpoint check-in",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "mapCheckpointCheckInError": "เช็คอินไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@mapCheckpointCheckInError": {
+    "description": "Snackbar shown when checkpoint check-in fails"
+  },
+  "pinDetailCheckInSuccess": "เช็คอินสำเร็จแล้ว! ได้ไป +{xp} XP",
+  "@pinDetailCheckInSuccess": {
+    "description": "Snackbar shown after successful check-in with XP earned",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "pinDetailCheckInAlreadyDone": "วันนี้เช็คอินที่นี่ไปแล้วนะ พรุ่งนี้มาใหม่ได้เลย",
+  "@pinDetailCheckInAlreadyDone": {
+    "description": "Snackbar shown when user already checked in today (HTTP 409)"
+  },
+  "pinDetailCheckInError": "เช็คอินไม่สำเร็จ ลองอีกครั้งนะ",
+  "@pinDetailCheckInError": {
+    "description": "Snackbar shown on generic check-in failure"
+  },
+  "pinDetailNavigatePlaceholder": "กำลังพาไปทางนั้นนะ... (ตัวอย่างเท่านั้น ยังไม่เชื่อมต่อจริง)",
+  "@pinDetailNavigatePlaceholder": {
+    "description": "Snackbar placeholder shown when tapping Navigate (feature not implemented)"
+  },
+  "pinDetailReviewDeleted": "ลบรีวิวแล้วนะ",
+  "@pinDetailReviewDeleted": {
+    "description": "Snackbar shown after successfully deleting own review"
+  },
+  "pinDetailReviewDeleteError": "ลบรีวิวไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@pinDetailReviewDeleteError": {
+    "description": "Snackbar shown when deleting own review fails"
+  },
+  "pinDetailRatingSummary": "{rating} ({count} รีวิว)",
+  "@pinDetailRatingSummary": {
+    "description": "Average rating with review count, e.g. '4.5 (12 reviews)'",
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinDetailNoReviews": "ยังไม่มีรีวิว",
+  "@pinDetailNoReviews": {
+    "description": "Shown next to star rating when a pin has no reviews yet"
+  },
+  "pinDetailVerifiedBadge": "มีคนยืนยันแล้ว",
+  "@pinDetailVerifiedBadge": {
+    "description": "Badge label shown on verified pins"
+  },
+  "pinDetailScamAlertDefault": "มีคนเคยเจอมิจฉาชีพแถวนี้ ระวังหน่อยนะ",
+  "@pinDetailScamAlertDefault": {
+    "description": "Default scam alert message when pin has no custom message"
+  },
+  "pinDetailNavigateButton": "นำทาง",
+  "@pinDetailNavigateButton": {
+    "description": "Navigate button label on pin detail screen"
+  },
+  "pinDetailCheckInButton": "เช็คอิน",
+  "@pinDetailCheckInButton": {
+    "description": "Check-in button label on pin detail screen"
+  },
+  "pinDetailReviewsSectionTitle": "รีวิวจากนักเดินทาง",
+  "@pinDetailReviewsSectionTitle": {
+    "description": "Section header for reviews list on pin detail screen"
+  },
+  "pinDetailWriteReviewButton": "เขียนรีวิว",
+  "@pinDetailWriteReviewButton": {
+    "description": "Button to open the write-review dialog"
+  },
+  "pinDetailReviewsLoadError": "ยังโหลดรีวิวไม่ได้เลย ลองใหม่อีกทีนะ",
+  "@pinDetailReviewsLoadError": {
+    "description": "Error message shown when reviews fail to load"
+  },
+  "pinDetailReviewsEmpty": "ยังไม่มีใครรีวิวที่นี่เลย\nเป็นคนแรกที่เล่าประสบการณ์กันไหม",
+  "@pinDetailReviewsEmpty": {
+    "description": "Empty state message when a pin has no reviews"
+  },
+  "pinDetailRiskReportsSectionTitle": "รายงานพื้นที่เสี่ยง",
+  "@pinDetailRiskReportsSectionTitle": {
+    "description": "Section header for risk reports list on pin detail screen"
+  },
+  "pinDetailReportButton": "รายงาน",
+  "@pinDetailReportButton": {
+    "description": "Button to open the report-risk dialog"
+  },
+  "pinDetailRiskReportsLoadError": "ยังโหลดรายงานไม่ได้เลย ลองใหม่อีกทีนะ",
+  "@pinDetailRiskReportsLoadError": {
+    "description": "Error message shown when risk reports fail to load"
+  },
+  "pinDetailRiskReportsEmpty": "ยังไม่มีใครรายงานความเสี่ยงที่นี่เลย",
+  "@pinDetailRiskReportsEmpty": {
+    "description": "Empty state message when a pin has no risk reports"
+  },
+  "writeReviewSubmitSuccess": "ขอบคุณสำหรับรีวิวนะ!",
+  "@writeReviewSubmitSuccess": {
+    "description": "Snackbar shown after successfully submitting a review"
+  },
+  "writeReviewSubmitError": "ส่งรีวิวไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@writeReviewSubmitError": {
+    "description": "Snackbar shown when submitting a review fails"
+  },
+  "writeReviewEditTitle": "แก้ไขรีวิวของคุณ",
+  "@writeReviewEditTitle": {
+    "description": "Write-review dialog title when editing an existing review"
+  },
+  "writeReviewNewTitle": "เล่าประสบการณ์ให้ฟังหน่อยนะ",
+  "@writeReviewNewTitle": {
+    "description": "Write-review dialog title when writing a new review"
+  },
+  "writeReviewCommentHint": "เป็นยังไงบ้าง? บอกเล่าให้เพื่อนๆ ฟังหน่อยนะ",
+  "@writeReviewCommentHint": {
+    "description": "Hint text for the review comment text field"
+  },
+  "writeReviewAttachPhotos": "แนบรูปภาพ",
+  "@writeReviewAttachPhotos": {
+    "description": "Label above the photo picker grid in write-review dialog"
+  },
+  "writeReviewSaveChanges": "บันทึกการแก้ไข",
+  "@writeReviewSaveChanges": {
+    "description": "Submit button label when editing an existing review"
+  },
+  "writeReviewSubmit": "ส่งรีวิว",
+  "@writeReviewSubmit": {
+    "description": "Submit button label when writing a new review"
+  },
+  "submitPinTitle": "เพิ่มจุดใหม่",
+  "@submitPinTitle": {
+    "description": "Submit pin screen app bar title"
+  },
+  "submitPinDragMapHint": "ลากแผนที่เพื่อปักหมุด",
+  "@submitPinDragMapHint": {
+    "description": "Hint overlay on the draggable map for placing a new pin"
+  },
+  "submitPinNameLabel": "ชื่อสถานที่",
+  "@submitPinNameLabel": {
+    "description": "Text field label for the new pin's place name"
+  },
+  "submitPinNameValidator": "กรุณากรอกชื่อสถานที่",
+  "@submitPinNameValidator": {
+    "description": "Validation error when place name is empty"
+  },
+  "submitPinCategoryLabel": "หมวดหมู่",
+  "@submitPinCategoryLabel": {
+    "description": "Label above the category chip selector"
+  },
+  "submitPinCityLabel": "เมือง (ถ้ามี)",
+  "@submitPinCityLabel": {
+    "description": "Text field label for optional city"
+  },
+  "submitPinDescriptionHint": "บอกเล่ารายละเอียดสถานที่นี้หน่อยนะ",
+  "@submitPinDescriptionHint": {
+    "description": "Hint text for the description text field"
+  },
+  "submitPinAttachPhotos": "แนบรูปภาพ",
+  "@submitPinAttachPhotos": {
+    "description": "Label above the photo picker grid in submit pin screen"
+  },
+  "submitPinSubmitButton": "ส่งจุดนี้",
+  "@submitPinSubmitButton": {
+    "description": "Submit button label on submit pin screen"
+  },
+  "submitPinSuccess": "ส่งจุดใหม่แล้ว รอทีมงานตรวจสอบก่อนนะ",
+  "@submitPinSuccess": {
+    "description": "Snackbar shown after successfully submitting a new pin"
+  },
+  "submitPinError": "ส่งจุดใหม่ไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@submitPinError": {
+    "description": "Snackbar shown when submitting a new pin fails"
+  },
+  "aboutTitle": "เกี่ยวกับเรา",
+  "@aboutTitle": {
+    "description": "About screen app bar title"
+  },
+  "aboutVersion": "เวอร์ชัน 1.0.0",
+  "@aboutVersion": {
+    "description": "App version label on about screen"
+  },
+  "aboutDescription": "ASEAN GO คือผู้คุ้มกันดิจิทัลและไกด์นำเที่ยวส่วนตัวของคุณในภูมิภาคอาเซียน ช่วยให้การเดินทางปลอดภัยยิ่งขึ้นด้วยจุดที่ผ่านการยืนยัน ระบบแจ้งเตือนความเสี่ยง และภารกิจที่ทำให้การท่องเที่ยวสนุกยิ่งขึ้น",
+  "@aboutDescription": {
+    "description": "About screen body description of the app"
+  },
+  "aboutWebsiteLabel": "เว็บไซต์",
+  "@aboutWebsiteLabel": {
+    "description": "About screen link tile label for website"
+  },
+  "aboutContactEmailLabel": "อีเมลติดต่อ",
+  "@aboutContactEmailLabel": {
+    "description": "About screen link tile label for contact email"
+  },
+  "aboutPrivacyPolicyLabel": "นโยบายความเป็นส่วนตัว",
+  "@aboutPrivacyPolicyLabel": {
+    "description": "About screen link tile label for privacy policy"
+  },
+  "changePasswordTitle": "เปลี่ยนรหัสผ่าน",
+  "@changePasswordTitle": {
+    "description": "Change password screen title and submit button label"
+  },
+  "changePasswordSuccess": "เปลี่ยนรหัสผ่านสำเร็จ",
+  "@changePasswordSuccess": {
+    "description": "Snackbar shown when password change succeeds"
+  },
+  "changePasswordFailure": "เปลี่ยนรหัสผ่านไม่สำเร็จ",
+  "@changePasswordFailure": {
+    "description": "Default error message when password change fails"
+  },
+  "changePasswordCurrentLabel": "รหัสผ่านเดิม",
+  "@changePasswordCurrentLabel": {
+    "description": "Current password field label"
+  },
+  "changePasswordCurrentValidator": "กรุณากรอกรหัสผ่านเดิม",
+  "@changePasswordCurrentValidator": {
+    "description": "Validation error when current password is empty"
+  },
+  "changePasswordNewLabel": "รหัสผ่านใหม่",
+  "@changePasswordNewLabel": {
+    "description": "New password field label"
+  },
+  "changePasswordConfirmLabel": "ยืนยันรหัสผ่านใหม่",
+  "@changePasswordConfirmLabel": {
+    "description": "Confirm new password field label"
+  },
+  "changePasswordMismatchValidator": "รหัสผ่านไม่ตรงกัน",
+  "@changePasswordMismatchValidator": {
+    "description": "Validation error when confirm password doesn't match new password"
+  },
+  "inventoryLoadError": "ยังโหลดของสะสมไม่ได้เลย ลองใหม่อีกทีนะ",
+  "@inventoryLoadError": {
+    "description": "Error text shown when inventory fails to load"
+  },
+  "inventoryEmptyState": "ยังไม่มีของสะสมเลย\nไปช้อปที่ร้านค้ากันก่อนนะ",
+  "@inventoryEmptyState": {
+    "description": "Empty state text shown when user has no inventory items"
+  },
+  "settingsSavedMessage": "บันทึกการตั้งค่าแล้ว",
+  "@settingsSavedMessage": {
+    "description": "Snackbar shown after saving notification or privacy settings"
+  },
+  "settingsLoadError": "ไม่สามารถโหลดการตั้งค่าได้\n{error}",
+  "@settingsLoadError": {
+    "description": "Error text shown when settings fail to load, includes error detail",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSettingsPushLabel": "การแจ้งเตือนแบบ Push",
+  "@notificationSettingsPushLabel": {
+    "description": "Notification settings switch label for push notifications"
+  },
+  "notificationSettingsEmailLabel": "การแจ้งเตือนทางอีเมล",
+  "@notificationSettingsEmailLabel": {
+    "description": "Notification settings switch label for email notifications"
+  },
+  "notificationSettingsSafetyLabel": "การแจ้งเตือนด้านความปลอดภัย",
+  "@notificationSettingsSafetyLabel": {
+    "description": "Notification settings switch label for safety alerts"
+  },
+  "notificationSettingsQuestLabel": "การเตือนภารกิจ",
+  "@notificationSettingsQuestLabel": {
+    "description": "Notification settings switch label for quest reminders"
+  },
+  "notificationSettingsPromotionsLabel": "โปรโมชั่นและข้อเสนอ",
+  "@notificationSettingsPromotionsLabel": {
+    "description": "Notification settings switch label for promotions and offers"
+  },
+  "saveLabel": "บันทึก",
+  "@saveLabel": {
+    "description": "Generic save button label used across settings screens"
+  },
+  "privacySettingsShowProfileLabel": "แสดงโปรไฟล์ให้ผู้อื่นเห็น",
+  "@privacySettingsShowProfileLabel": {
+    "description": "Privacy settings switch label for showing profile to others"
+  },
+  "privacySettingsShowCheckinsLabel": "แสดงประวัติการเช็คอิน",
+  "@privacySettingsShowCheckinsLabel": {
+    "description": "Privacy settings switch label for showing check-in history"
+  },
+  "privacySettingsShowReviewsLabel": "แสดงรีวิวที่เขียน",
+  "@privacySettingsShowReviewsLabel": {
+    "description": "Privacy settings switch label for showing written reviews"
+  },
+  "privacySettingsAllowDataCollectionLabel": "อนุญาตให้เก็บข้อมูลการใช้งาน",
+  "@privacySettingsAllowDataCollectionLabel": {
+    "description": "Privacy settings switch label for allowing usage data collection"
+  },
+  "profileLevelLabel": "เลเวล {level}",
+  "@profileLevelLabel": {
+    "description": "Profile screen badge showing the user's level",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "profileXpProgress": "{xp} / 100 XP",
+  "@profileXpProgress": {
+    "description": "Profile screen XP progress text out of 100 for current level",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "profileMyCollectionsTitle": "ของสะสมของฉัน",
+  "@profileMyCollectionsTitle": {
+    "description": "Profile screen section title for inventory/collectibles"
+  },
+  "profileStoreLabel": "ร้านค้า",
+  "@profileStoreLabel": {
+    "description": "Profile screen list tile label linking to the store"
+  },
+  "profileQuestsCompletedLabel": "เควสสำเร็จ",
+  "@profileQuestsCompletedLabel": {
+    "description": "Profile screen stat card label for completed quests count"
+  },
+  "profileTotalXpLabel": "XP ทั้งหมด",
+  "@profileTotalXpLabel": {
+    "description": "Profile screen stat card label for total XP"
+  },
+  "profileCoinsLabel": "เหรียญ",
+  "@profileCoinsLabel": {
+    "description": "Profile screen stat card label for coin balance"
+  },
+  "emergencyContactSaved": "บันทึกผู้ติดต่อฉุกเฉินแล้ว",
+  "@emergencyContactSaved": {
+    "description": "Snackbar shown when emergency contact is saved successfully"
+  },
+  "emergencyContactSaveFailed": "บันทึกไม่สำเร็จ",
+  "@emergencyContactSaveFailed": {
+    "description": "Fallback error message when saving emergency contact fails"
+  },
+  "emergencyContactExplanation": "เมื่อคุณกดปุ่ม SOS ระบบจะบันทึกพิกัดของคุณและแจ้งไปยังผู้ติดต่อนี้",
+  "@emergencyContactExplanation": {
+    "description": "Explanation text on emergency contact screen"
+  },
+  "emergencyContactNameLabel": "ชื่อผู้ติดต่อฉุกเฉิน",
+  "@emergencyContactNameLabel": {
+    "description": "Emergency contact name field label"
+  },
+  "emergencyContactNameValidator": "กรุณากรอกชื่อ",
+  "@emergencyContactNameValidator": {
+    "description": "Validation error when emergency contact name is empty"
+  },
+  "emergencyContactPhoneLabel": "เบอร์โทรศัพท์",
+  "@emergencyContactPhoneLabel": {
+    "description": "Emergency contact phone field label"
+  },
+  "emergencyContactPhoneValidator": "กรุณากรอกเบอร์โทรที่ถูกต้อง",
+  "@emergencyContactPhoneValidator": {
+    "description": "Validation error for invalid emergency contact phone number"
+  },
+  "proximityAlertReportCountMessage": "มีคนรายงานว่าพื้นที่นี้ควรระวัง ({count} รายงาน)",
+  "@proximityAlertReportCountMessage": {
+    "description": "Proximity alert banner message showing how many community reports exist for a nearby risk",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "proximityAlertGenericMessage": "จุดนี้ควรระวังเป็นพิเศษนะ",
+  "@proximityAlertGenericMessage": {
+    "description": "Proximity alert banner message when there's no report count detail"
+  },
+  "proximityAlertNearbyTitle": "ใกล้ {placeName}",
+  "@proximityAlertNearbyTitle": {
+    "description": "Proximity alert banner title showing the name of the nearby risky place",
+    "placeholders": {
+      "placeName": {
+        "type": "String"
+      }
+    }
+  },
+  "riskSeverityCaution": "ระวังนิดหน่อย",
+  "@riskSeverityCaution": {
+    "description": "Risk severity chip label: caution level"
+  },
+  "riskSeverityWarning": "ควรระวัง",
+  "@riskSeverityWarning": {
+    "description": "Risk severity chip label: warning level"
+  },
+  "riskSeverityDanger": "อันตราย",
+  "@riskSeverityDanger": {
+    "description": "Risk severity chip label: danger level"
+  },
+  "reportRiskDescriptionRequired": "กรุณาอธิบายเหตุการณ์ที่พบหน่อยนะ",
+  "@reportRiskDescriptionRequired": {
+    "description": "Snackbar shown when submitting a risk report without a description"
+  },
+  "reportRiskThanksMessage": "ขอบคุณที่ช่วยเตือนนักเดินทางคนอื่นนะ",
+  "@reportRiskThanksMessage": {
+    "description": "Snackbar shown after successfully submitting a risk report"
+  },
+  "reportRiskTitle": "รายงานพื้นที่เสี่ยง",
+  "@reportRiskTitle": {
+    "description": "Report risk dialog title"
+  },
+  "reportRiskSubtitle": "ช่วยเตือนนักเดินทางคนอื่นว่าจุดนี้ควรระวังอะไร",
+  "@reportRiskSubtitle": {
+    "description": "Report risk dialog subtitle"
+  },
+  "reportRiskDescriptionHint": "เช่น มีคนเรียกเก็บเงินเกินราคา, ทางเดินมืดตอนกลางคืน...",
+  "@reportRiskDescriptionHint": {
+    "description": "Hint text for risk report description field"
+  },
+  "reportRiskAttachPhotos": "แนบรูปภาพ (ถ้ามี)",
+  "@reportRiskAttachPhotos": {
+    "description": "Label for optional photo attachment section in risk report dialog"
+  },
+  "reportRiskSubmitButton": "ส่งรายงาน",
+  "@reportRiskSubmitButton": {
+    "description": "Submit button label in risk report dialog"
+  },
+  "cardFormNumberIncomplete": "หมายเลขบัตรไม่ครบ",
+  "@cardFormNumberIncomplete": {
+    "description": "Validation error when card number is too short"
+  },
+  "cardFormNumberInvalid": "หมายเลขบัตรไม่ถูกต้อง",
+  "@cardFormNumberInvalid": {
+    "description": "Validation error when card number fails Luhn check"
+  },
+  "cardFormExpiryFormat": "รูปแบบ MM/YY",
+  "@cardFormExpiryFormat": {
+    "description": "Validation error for wrong expiry format"
+  },
+  "cardFormExpiryMonthInvalid": "เดือนไม่ถูกต้อง",
+  "@cardFormExpiryMonthInvalid": {
+    "description": "Validation error for invalid month in expiry"
+  },
+  "cardFormExpired": "บัตรหมดอายุแล้ว",
+  "@cardFormExpired": {
+    "description": "Validation error when card is already expired"
+  },
+  "cardFormCvvInvalid": "CVV ไม่ถูกต้อง",
+  "@cardFormCvvInvalid": {
+    "description": "Validation error for invalid CVV length"
+  },
+  "cardFormChargeFailedRetry": "ชำระเงินไม่สำเร็จ ลองใหม่อีกทีนะ",
+  "@cardFormChargeFailedRetry": {
+    "description": "Fallback error message on unexpected charge exception"
+  },
+  "cardFormTitle": "ชำระเงิน",
+  "@cardFormTitle": {
+    "description": "Card form screen app bar title"
+  },
+  "cardFormChargingMessage": "กำลังดำเนินการชำระเงิน...",
+  "@cardFormChargingMessage": {
+    "description": "Status message shown while payment is processing"
+  },
+  "cardFormPendingMessage": "รับคำขอชำระเงินแล้ว กำลังรอการยืนยัน",
+  "@cardFormPendingMessage": {
+    "description": "Status message shown when payment result is pending confirmation"
+  },
+  "cardFormSuccessMessage": "ชำระเงินสำเร็จแล้ว! ได้เหรียญเพิ่ม {coins} เหรียญ",
+  "@cardFormSuccessMessage": {
+    "description": "Status message shown when payment succeeds and coins are credited",
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "cardFormChargeFailed": "ชำระเงินไม่สำเร็จ",
+  "@cardFormChargeFailed": {
+    "description": "Generic status message shown on payment failure with no specific error"
+  },
+  "coinAmountLabel": "{coins} เหรียญ",
+  "@coinAmountLabel": {
+    "description": "Label showing a coin amount, e.g. '100 coins'",
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "cardFormNameLabel": "ชื่อบนบัตร",
+  "@cardFormNameLabel": {
+    "description": "Card form name-on-card field label"
+  },
+  "cardFormNameValidator": "กรุณากรอกชื่อบนบัตร",
+  "@cardFormNameValidator": {
+    "description": "Validation error when name on card is empty"
+  },
+  "cardFormNumberLabel": "หมายเลขบัตร",
+  "@cardFormNumberLabel": {
+    "description": "Card form card-number field label"
+  },
+  "cardFormSecurityNote": "ข้อมูลบัตรของคุณจะถูกส่งตรงไปยัง Omise อย่างปลอดภัย ไม่ผ่านเซิร์ฟเวอร์ของเรา",
+  "@cardFormSecurityNote": {
+    "description": "Security disclaimer note shown below the card form, mentions Omise by name"
+  },
+  "cardFormPayButton": "ชำระเงิน ฿{price}",
+  "@cardFormPayButton": {
+    "description": "Pay button label with THB price",
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "doneLabel": "เสร็จสิ้น",
+  "coinPurchaseTitle": "เติมเหรียญ",
+  "@coinPurchaseTitle": {
+    "description": "Coin purchase bottom sheet title"
+  },
+  "coinPurchaseSubtitle": "ใช้ซื้อของสะสมในร้านค้าได้เลย",
+  "@coinPurchaseSubtitle": {
+    "description": "Coin purchase bottom sheet subtitle"
+  },
+  "coinPurchaseSecureNote": "ชำระเงินปลอดภัยผ่าน Omise",
+  "@coinPurchaseSecureNote": {
+    "description": "Secure payment note in coin purchase dialog, mentions Omise by name"
+  },
+  "coinPurchaseBonusPercent": "คุ้มกว่า {percent}%",
+  "@coinPurchaseBonusPercent": {
+    "description": "Label showing bonus value percentage for a coin package, e.g. '20% better value'",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "rarityCommon": "ทั่วไป",
+  "@rarityCommon": {
+    "description": "Item rarity badge label: common"
+  },
+  "rarityRare": "หายาก",
+  "@rarityRare": {
+    "description": "Item rarity badge label: rare"
+  },
+  "rarityEpic": "พิเศษ",
+  "@rarityEpic": {
+    "description": "Item rarity badge label: epic"
+  },
+  "rarityLegendary": "ตำนาน",
+  "@rarityLegendary": {
+    "description": "Item rarity badge label: legendary"
+  },
+  "storeItemOwnedLabel": "มีแล้ว",
+  "@storeItemOwnedLabel": {
+    "description": "Label shown on a store item card the user already owns"
+  },
+  "storeItemBuyButton": "ซื้อ",
+  "@storeItemBuyButton": {
+    "description": "Buy button label on a store item card"
+  },
+  "storeCategoryOutfit": "ชุด",
+  "@storeCategoryOutfit": {
+    "description": "Store category tab label: outfits"
+  },
+  "storeCategoryAvatar": "อวาตาร์",
+  "@storeCategoryAvatar": {
+    "description": "Store category tab label: avatars"
+  },
+  "storeCategoryBooster": "บูสเตอร์",
+  "@storeCategoryBooster": {
+    "description": "Store category tab label: boosters"
+  },
+  "storeCategorySouvenir": "ของที่ระลึก",
+  "@storeCategorySouvenir": {
+    "description": "Store category tab label: souvenirs"
+  },
+  "storeCategoryAll": "ทั้งหมด",
+  "@storeCategoryAll": {
+    "description": "Store category tab label: all items"
+  },
+  "storeItemPurchasedMessage": "ได้ของชิ้นใหม่แล้ว!",
+  "@storeItemPurchasedMessage": {
+    "description": "Snackbar shown after successfully purchasing a store item"
+  },
+  "storeScreenTitle": "ร้านค้า",
+  "@storeScreenTitle": {
+    "description": "Store screen app bar title"
+  },
+  "storeLoadErrorMessage": "ยังโหลดร้านค้าไม่ได้เลย ลองใหม่อีกทีนะ\n{error}",
+  "@storeLoadErrorMessage": {
+    "description": "Error message shown when the store catalog fails to load, includes raw error detail",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "storeEmptyCategoryMessage": "ยังไม่มีสินค้าในหมวดนี้เลย",
+  "@storeEmptyCategoryMessage": {
+    "description": "Empty state message when a store category has no items"
+  },
+  "homeWhereToGo": "ไปไหนกันดี",
+  "@homeWhereToGo": {
+    "description": "Home screen section header for quick actions"
+  },
+  "homeActionMap": "แผนที่",
+  "@homeActionMap": {
+    "description": "Home quick action label - map tab"
+  },
+  "homeActionQuests": "เควส",
+  "@homeActionQuests": {
+    "description": "Home quick action label - quests tab"
+  },
+  "homeActionProfile": "โปรไฟล์",
+  "@homeActionProfile": {
+    "description": "Home quick action label - profile tab"
+  },
+  "homeActionNotifications": "แจ้งเตือน",
+  "@homeActionNotifications": {
+    "description": "Home quick action label - notifications"
+  },
+  "homeNoNewNotifications": "ยังไม่มีการแจ้งเตือนใหม่ตอนนี้นะ",
+  "@homeNoNewNotifications": {
+    "description": "Snackbar shown when notifications button tapped and there are none"
+  },
+  "homeGreeting": "สวัสดี คุณ{displayName}!",
+  "@homeGreeting": {
+    "description": "Home header greeting with user's display name",
+    "placeholders": {
+      "displayName": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGreetingSubtitle": "วันนี้ไปเที่ยวไหนกันดีนะ",
+  "@homeGreetingSubtitle": {
+    "description": "Home header subtitle under greeting"
+  },
+  "homeCloseToNextLevel": "ใกล้เลเวลถัดไปแล้วนะ",
+  "@homeCloseToNextLevel": {
+    "description": "Home header label near XP progress bar"
+  },
+  "homeQuestsProgressToday": "วันนี้ทำเควสไปแล้ว {completed}/{total} นะ",
+  "@homeQuestsProgressToday": {
+    "description": "Home header line showing today's completed vs total quests",
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeRecommendedQuests": "ภารกิจน่าลอง",
+  "@homeRecommendedQuests": {
+    "description": "Home screen section header for recommended quests carousel"
+  },
+  "homeAllQuestsCompleted": "เก่งมาก ทำครบทุกภารกิจแล้ว",
+  "@homeAllQuestsCompleted": {
+    "description": "Home screen message when there are no pending quests left (recommended quests section)"
+  },
+  "homeNearbyPlaces": "ที่เที่ยวใกล้ๆ คุณ",
+  "@homeNearbyPlaces": {
+    "description": "Home screen section header for nearby places"
+  },
+  "homeNearbyPlacesError": "ยังหาที่เที่ยวใกล้ๆ ไม่เจอเลย ลองใหม่อีกทีนะ",
+  "@homeNearbyPlacesError": {
+    "description": "Home screen error message when nearby places fail to load"
+  },
+  "homeNoNearbyPlaces": "ยังไม่มีที่เที่ยวใกล้ๆ ตอนนี้เลย",
+  "@homeNoNearbyPlaces": {
+    "description": "Home screen message when there are no nearby places"
+  },
+  "homeSosActiveButton": "ส่งสัญญาณ SOS แล้ว — แตะเพื่อยกเลิก",
+  "@homeSosActiveButton": {
+    "description": "Button label when an SOS is currently active, tap to cancel"
+  },
+  "homeSosTriggerButton": "ฉุกเฉิน — ส่งพิกัดขอความช่วยเหลือ",
+  "@homeSosTriggerButton": {
+    "description": "Button label to trigger an SOS emergency alert"
+  },
+  "homeSosConfirmTitle": "เหตุฉุกเฉิน",
+  "@homeSosConfirmTitle": {
+    "description": "Dialog title confirming SOS trigger"
+  },
+  "homeSosConfirmContent": "ระบบจะส่งพิกัดปัจจุบันของคุณไปยังผู้ติดต่อฉุกเฉินที่ตั้งไว้ และบันทึกเหตุการณ์ไว้ในระบบ",
+  "@homeSosConfirmContent": {
+    "description": "Dialog body confirming SOS trigger"
+  },
+  "homeSosCancel": "ยกเลิก",
+  "@homeSosCancel": {
+    "description": "Cancel button label in SOS dialogs"
+  },
+  "homeSosSendButton": "ส่ง SOS",
+  "@homeSosSendButton": {
+    "description": "Confirm button label to send SOS"
+  },
+  "homeSosSentMessage": "ส่งสัญญาณ SOS แล้ว ทีมงานและผู้ติดต่อฉุกเฉินจะได้รับแจ้ง",
+  "@homeSosSentMessage": {
+    "description": "Snackbar shown after SOS is successfully sent"
+  },
+  "homeSosSendFailed": "ส่ง SOS ไม่สำเร็จ: {error}",
+  "@homeSosSendFailed": {
+    "description": "Snackbar shown when sending SOS fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSosResolveTitle": "ยกเลิกสัญญาณ SOS",
+  "@homeSosResolveTitle": {
+    "description": "Dialog title to resolve/cancel an active SOS"
+  },
+  "homeSosResolveContent": "คุณปลอดภัยแล้วใช่ไหม? ระบบจะปิดเหตุการณ์นี้",
+  "@homeSosResolveContent": {
+    "description": "Dialog body to resolve/cancel an active SOS"
+  },
+  "homeSosNotSafeYet": "ยังไม่ปลอดภัย",
+  "@homeSosNotSafeYet": {
+    "description": "Button label declining to resolve the SOS (not safe yet)"
+  },
+  "homeSosSafeConfirm": "ใช่ ปลอดภัยแล้ว",
+  "@homeSosSafeConfirm": {
+    "description": "Button label confirming user is safe, resolving the SOS"
+  },
+  "questStatusCompleted": "ทำแล้ว",
+  "@questStatusCompleted": {
+    "description": "Small status label on quest card when completed"
+  },
+  "questStatusPending": "รอทำ",
+  "@questStatusPending": {
+    "description": "Small status label on quest card when pending"
+  },
+  "questCoinReward": "+{coins} เหรียญ",
+  "@questCoinReward": {
+    "description": "Coin reward chip label on quest card",
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      }
+    }
+  },
+  "questCardCompleteButton": "ไปทำกัน",
+  "@questCardCompleteButton": {
+    "description": "Button label on quest card to go complete the quest"
+  },
+  "questAlreadyCompletedOrRetry": "ภารกิจนี้ทำไปแล้ว หรือลองใหม่อีกทีนะ",
+  "@questAlreadyCompletedOrRetry": {
+    "description": "Snackbar shown when completing a quest returns no XP (already completed or error)"
+  },
+  "questsScreenTitle": "ภารกิจประจำวัน",
+  "@questsScreenTitle": {
+    "description": "Quests screen app bar title"
+  },
+  "questsLoadError": "ยังโหลดภารกิจไม่ได้เลย ลองใหม่อีกทีนะ\n{error}",
+  "@questsLoadError": {
+    "description": "Empty state message when quests fail to load, includes error detail",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "questsEmptyState": "ยังไม่มีภารกิจตอนนี้เลย กลับมาดูใหม่เร็วๆ นี้นะ",
+  "@questsEmptyState": {
+    "description": "Empty state message when there are no quests at all"
+  },
+  "questStatCompleted": "ทำแล้ว",
+  "@questStatCompleted": {
+    "description": "Quests stats pill label for completed count"
+  },
+  "questStatRemaining": "เหลืออีก",
+  "@questStatRemaining": {
+    "description": "Quests stats pill label for remaining count"
+  },
+  "questStatTotal": "ทั้งหมด",
+  "@questStatTotal": {
+    "description": "Quests stats pill label for total count"
+  },
+  "questsAllCompletedBanner": "เก่งมาก ทำครบทุกภารกิจแล้ว!",
+  "@questsAllCompletedBanner": {
+    "description": "Banner text on quests screen when all quests are done (with exclamation)"
+  },
+  "questsKeepGoingBanner": "ทำต่ออีกนิดนะ สู้ๆ",
+  "@questsKeepGoingBanner": {
+    "description": "Banner text on quests screen encouraging user to keep completing quests"
+  }
+}

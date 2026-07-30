@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../shared/widgets/gradient_button.dart';
 import '../../auth/presentation/auth_controller.dart';
 
@@ -29,6 +30,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _isSaving = true;
       _error = null;
@@ -41,13 +43,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('เปลี่ยนรหัสผ่านสำเร็จ')),
+        SnackBar(content: Text(l10n.changePasswordSuccess)),
       );
       Navigator.of(context).pop();
     } on DioException catch (e) {
       final message = e.response?.data is Map
-          ? (e.response!.data as Map)['error'] as String? ?? 'เปลี่ยนรหัสผ่านไม่สำเร็จ'
-          : 'เปลี่ยนรหัสผ่านไม่สำเร็จ';
+          ? (e.response!.data as Map)['error'] as String? ?? l10n.changePasswordFailure
+          : l10n.changePasswordFailure;
       setState(() => _error = message);
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -56,8 +58,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('เปลี่ยนรหัสผ่าน')),
+      appBar: AppBar(title: Text(l10n.changePasswordTitle)),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -68,31 +71,31 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               TextFormField(
                 controller: _currentController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'รหัสผ่านเดิม',
-                  prefixIcon: Icon(Icons.lock_outline),
+                decoration: InputDecoration(
+                  labelText: l10n.changePasswordCurrentLabel,
+                  prefixIcon: const Icon(Icons.lock_outline),
                 ),
-                validator: (v) => (v == null || v.isEmpty) ? 'กรุณากรอกรหัสผ่านเดิม' : null,
+                validator: (v) => (v == null || v.isEmpty) ? l10n.changePasswordCurrentValidator : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _newController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'รหัสผ่านใหม่',
-                  prefixIcon: Icon(Icons.lock_reset_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.changePasswordNewLabel,
+                  prefixIcon: const Icon(Icons.lock_reset_outlined),
                 ),
-                validator: (v) => (v == null || v.length < 8) ? 'อย่างน้อย 8 ตัวอักษร' : null,
+                validator: (v) => (v == null || v.length < 8) ? l10n.passwordValidator : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _confirmController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'ยืนยันรหัสผ่านใหม่',
-                  prefixIcon: Icon(Icons.check_circle_outline),
+                decoration: InputDecoration(
+                  labelText: l10n.changePasswordConfirmLabel,
+                  prefixIcon: const Icon(Icons.check_circle_outline),
                 ),
-                validator: (v) => (v != _newController.text) ? 'รหัสผ่านไม่ตรงกัน' : null,
+                validator: (v) => (v != _newController.text) ? l10n.changePasswordMismatchValidator : null,
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
@@ -100,7 +103,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               ],
               const SizedBox(height: 24),
               GradientButton(
-                label: 'เปลี่ยนรหัสผ่าน',
+                label: l10n.changePasswordTitle,
                 isLoading: _isSaving,
                 onPressed: _isSaving ? null : _submit,
               ),
