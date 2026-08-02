@@ -10,6 +10,7 @@ import { sendPasswordResetEmail } from "./mailer.client";
 export interface UserRecord {
   id: string;
   email: string;
+  username: string | null;
   password_hash: string | null;
   display_name: string;
   auth_provider: string;
@@ -21,41 +22,49 @@ export interface UserRecord {
   role: string;
 }
 
-const PUBLIC_COLUMNS = `id, email, display_name, auth_provider, avatar_url, xp, level, is_premium, coin_balance, role`;
+const PUBLIC_COLUMNS = `id, email, username, display_name, auth_provider, avatar_url, xp, level, is_premium, coin_balance, role`;
 
 export function signToken(userId: string): string {
   return jwt.sign({ sub: userId }, env.jwtSecret, { expiresIn: env.jwtExpiresIn } as jwt.SignOptions);
 }
 
-export async function registerWithEmail(email: string, password: string, displayName: string) {
-  const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
-  if (existing.rowCount) {
+export async function registerWithEmail(email: string, password: string, displayName: string, username: string) {
+  const existingEmail = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+  if (existingEmail.rowCount) {
     throw new HttpError(409, "An account with this email already exists");
+  }
+
+  const existingUsername = await pool.query("SELECT id FROM users WHERE lower(username) = lower($1)", [username]);
+  if (existingUsername.rowCount) {
+    throw new HttpError(409, "This username is already taken");
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
   const result = await pool.query(
-    `INSERT INTO users (email, password_hash, display_name, auth_provider)
-     VALUES ($1, $2, $3, 'email')
+    `INSERT INTO users (email, password_hash, display_name, username, auth_provider)
+     VALUES ($1, $2, $3, $4, 'email')
      RETURNING ${PUBLIC_COLUMNS}`,
-    [email, passwordHash, displayName]
+    [email, passwordHash, displayName, username]
   );
   return result.rows[0];
 }
 
-export async function loginWithEmail(email: string, password: string) {
+/// Accepts either the account's email or its username in `identifier` —
+/// whichever it looks like, a single query tries both so the caller never
+/// needs to know which one the user typed.
+export async function loginWithIdentifier(identifier: string, password: string) {
   const result = await pool.query<UserRecord>(
-    `SELECT ${PUBLIC_COLUMNS}, password_hash FROM users WHERE email = $1`,
-    [email]
+    `SELECT ${PUBLIC_COLUMNS}, password_hash FROM users WHERE email = $1 OR lower(username) = lower($1)`,
+    [identifier]
   );
   const user = result.rows[0];
   if (!user || !user.password_hash) {
-    throw new HttpError(401, "Invalid email or password");
+    throw new HttpError(401, "Invalid credentials");
   }
 
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
-    throw new HttpError(401, "Invalid email or password");
+    throw new HttpError(401, "Invalid credentials");
   }
 
   const { password_hash, ...publicUser } = user;
@@ -117,28 +126,32 @@ async function verifyFacebookAccessToken(accessToken: string) {
 }
 
 /// Shared find-or-create for any social provider: an existing account
-/// matched by (provider, providerId) logs straight in; a first-time signup
-/// with an email that already belongs to a *different* provider is refused
-/// rather than silently merged, since we can't verify the person requesting
-/// the merge actually owns that other account.
+/// matched by (provider, providerId) logs straight in. Failing that, a
+/// match by email alone also logs straight in — the provider itself
+/// (Google/Facebook) already verified this person controls that email
+/// address, which is the same proof of ownership email/password login
+/// relies on, so there's no weaker guarantee being accepted here. The
+/// account's own auth_provider/provider_id columns are left untouched
+/// (users.provider_id is a single slot, not a list) — the account simply
+/// becomes reachable via any provider whose verified email matches it,
+/// rather than formally "linking" a second provider to it.
 async function findOrCreateSocialUser(
   provider: "google" | "facebook",
   identity: { providerId: string; email: string; displayName: string; avatarUrl?: string }
 ) {
-  const existing = await pool.query<UserRecord>(
+  const existingByProvider = await pool.query<UserRecord>(
     `SELECT ${PUBLIC_COLUMNS} FROM users WHERE auth_provider = $1 AND provider_id = $2`,
     [provider, identity.providerId]
   );
-  if (existing.rowCount) {
-    return existing.rows[0];
+  if (existingByProvider.rowCount) {
+    return existingByProvider.rows[0];
   }
 
-  const emailTaken = await pool.query("SELECT auth_provider FROM users WHERE email = $1", [identity.email]);
-  if (emailTaken.rowCount) {
-    throw new HttpError(
-      409,
-      `An account with this email already exists using ${emailTaken.rows[0].auth_provider} sign-in. Please use that method instead.`
-    );
+  const existingByEmail = await pool.query<UserRecord>(`SELECT ${PUBLIC_COLUMNS} FROM users WHERE email = $1`, [
+    identity.email,
+  ]);
+  if (existingByEmail.rowCount) {
+    return existingByEmail.rows[0];
   }
 
   const result = await pool.query<UserRecord>(

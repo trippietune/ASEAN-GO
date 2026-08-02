@@ -3,7 +3,10 @@ import { ZodError } from "zod";
 import { logger } from "../config/logger";
 
 export class HttpError extends Error {
-  constructor(public status: number, message: string) {
+  // `extra` carries structured fields a client can act on programmatically
+  // (e.g. which email/provider a conflict involves) without having to parse
+  // them back out of the human-readable `message` string.
+  constructor(public status: number, message: string, public extra?: Record<string, unknown>) {
     super(message);
   }
 }
@@ -20,7 +23,7 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
     } else {
       logger.warn({ path: req.path, status: err.status }, err.message);
     }
-    return res.status(err.status).json({ error: err.message });
+    return res.status(err.status).json({ error: err.message, ...err.extra });
   }
   logger.error({ err, path: req.path }, "Unhandled error");
   return res.status(500).json({ error: "Internal server error" });
