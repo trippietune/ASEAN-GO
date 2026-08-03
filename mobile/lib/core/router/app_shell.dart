@@ -5,6 +5,7 @@ import '../../features/map/presentation/map_screen.dart';
 import '../../features/quests/presentation/quests_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/safety/presentation/proximity_alert_controller.dart';
+import '../../features/schedule/presentation/schedule_screen.dart';
 import 'app_tab_controller.dart';
 
 class AppShell extends ConsumerStatefulWidget {
@@ -19,6 +20,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     HomeScreen(),
     MapScreen(),
     QuestsScreen(),
+    ScheduleScreen(),
     ProfileScreen(),
   ];
 
@@ -49,6 +51,7 @@ class _AppShellState extends ConsumerState<AppShell> {
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.map_outlined), selectedIcon: Icon(Icons.map), label: 'Map'),
           NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Quests'),
+          NavigationDestination(icon: Icon(Icons.calendar_today_outlined), selectedIcon: Icon(Icons.calendar_today), label: 'Schedule'),
           NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
         ],
       ),

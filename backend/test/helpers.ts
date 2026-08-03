@@ -7,6 +7,7 @@ export interface TestUser {
   id: string;
   token: string;
   email: string;
+  username: string;
   role: string;
 }
 
@@ -17,13 +18,15 @@ export interface TestUser {
 /// same as a real operator would via direct DB access or a seed script.
 export async function createTestUser(
   app: Express,
-  options: { role?: "user" | "admin" | "moderator"; email?: string } = {}
+  options: { role?: "user" | "admin" | "moderator"; email?: string; username?: string } = {}
 ): Promise<TestUser> {
   const email = options.email ?? `test-${Math.random().toString(36).slice(2)}@example.com`;
+  const username = options.username ?? `user${Math.random().toString(36).slice(2, 10)}`;
   const res = await request(app).post("/auth/register").send({
     email,
     password: "password123",
     displayName: "Test User",
+    username,
   });
   const userId = res.body.user.id as string;
 
@@ -31,5 +34,5 @@ export async function createTestUser(
     await pool.query("UPDATE users SET role = $2 WHERE id = $1", [userId, options.role]);
   }
 
-  return { id: userId, token: signToken(userId), email, role: options.role ?? "user" };
+  return { id: userId, token: signToken(userId), email, username, role: options.role ?? "user" };
 }

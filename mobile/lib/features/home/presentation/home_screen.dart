@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/router/app_tab_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../shared/widgets/animated_gradient_background.dart';
 import '../../../shared/widgets/level_badge.dart';
 import '../../../shared/widgets/organic_accent.dart';
 import '../../../shared/widgets/safety_indicator.dart';
 import '../../../shared/widgets/xp_badge.dart';
+import '../../../shared/widgets/xp_bar.dart';
 import '../../auth/data/user_model.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../map/data/pin_model.dart';
@@ -27,74 +29,87 @@ class HomeScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: user != null ? _HomeHeader(user: user) : const SizedBox(height: 16)),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  const ProximityAlertBanner(),
-                  const _EmergencyButton(),
-                ],
+      backgroundColor: Colors.transparent,
+      body: AnimatedGradientBackground(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: user != null
+                  ? _HomeHeader(user: user)
+                  : const SizedBox(height: 16),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const ProximityAlertBanner(),
+                    const _EmergencyButton(),
+                  ],
+                ),
               ),
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.homeWhereToGo,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _ActionCard(
-                        icon: Icons.map_outlined,
-                        label: l10n.homeActionMap,
-                        onTap: () => ref.read(selectedTabProvider.notifier).state = 1,
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.homeWhereToGo,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      _ActionCard(
-                        icon: Icons.checklist_rtl,
-                        label: l10n.homeActionQuests,
-                        onTap: () => ref.read(selectedTabProvider.notifier).state = 2,
-                      ),
-                      _ActionCard(
-                        icon: Icons.person_outline,
-                        label: l10n.homeActionProfile,
-                        onTap: () => ref.read(selectedTabProvider.notifier).state = 3,
-                      ),
-                      _ActionCard(
-                        icon: Icons.notifications_outlined,
-                        label: l10n.homeActionNotifications,
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.homeNoNewNotifications)),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _ActionCard(
+                          icon: Icons.map_outlined,
+                          label: l10n.homeActionMap,
+                          onTap: () =>
+                              ref.read(selectedTabProvider.notifier).state = 1,
+                        ),
+                        _ActionCard(
+                          icon: Icons.checklist_rtl,
+                          label: l10n.homeActionQuests,
+                          onTap: () =>
+                              ref.read(selectedTabProvider.notifier).state = 2,
+                        ),
+                        _ActionCard(
+                          icon: Icons.person_outline,
+                          label: l10n.homeActionProfile,
+                          onTap: () =>
+                              ref.read(selectedTabProvider.notifier).state = 3,
+                        ),
+                        _ActionCard(
+                          icon: Icons.notifications_outlined,
+                          label: l10n.homeActionNotifications,
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(l10n.homeNoNewNotifications),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 0, 0),
-            sliver: SliverToBoxAdapter(child: _RecommendedQuestsSection()),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-            sliver: SliverToBoxAdapter(child: _NearbyPlacesSection()),
-          ),
-        ],
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 0, 0),
+              sliver: SliverToBoxAdapter(child: _RecommendedQuestsSection()),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+              sliver: SliverToBoxAdapter(child: _NearbyPlacesSection()),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -127,28 +142,53 @@ class _HomeHeader extends ConsumerWidget {
           Positioned(
             top: -20,
             left: -20,
-            child: OrganicAccent(color: Colors.white.withValues(alpha: 0.18), size: 120),
+            child: OrganicAccent(
+              color: Colors.white.withValues(alpha: 0.18),
+              size: 120,
+            ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 24),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              MediaQuery.of(context).padding.top + 16,
+              20,
+              24,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.fromBorderSide(BorderSide(color: Colors.white, width: 3)),
+                        border: const Border.fromBorderSide(
+                          BorderSide(color: AppColors.pink, width: 3),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.pink.withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
                       child: CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.white38,
-                        backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+                        backgroundImage: user.avatarUrl != null
+                            ? NetworkImage(user.avatarUrl!)
+                            : null,
                         child: user.avatarUrl == null
                             ? Text(
-                                user.displayName.isNotEmpty ? user.displayName.characters.first : '?',
-                                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                                user.displayName.isNotEmpty
+                                    ? user.displayName.characters.first
+                                    : '?',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               )
                             : null,
                       ),
@@ -160,11 +200,21 @@ class _HomeHeader extends ConsumerWidget {
                         children: [
                           Text(
                             l10n.homeGreeting(user.displayName),
-                            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              color: AppColors.greyDark,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
-                          Text(l10n.homeGreetingSubtitle, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                          Text(
+                            l10n.homeGreetingSubtitle,
+                            style: TextStyle(
+                              color: AppColors.greyDark.withValues(alpha: 0.7),
+                              fontSize: 13,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -175,29 +225,44 @@ class _HomeHeader extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(l10n.homeCloseToNextLevel, style: const TextStyle(color: Colors.white, fontSize: 12)),
-                    Text('$xpIntoLevel / 100 XP', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                    Text(
+                      l10n.homeCloseToNextLevel,
+                      style: const TextStyle(
+                        color: AppColors.greyDark,
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      '$xpIntoLevel / 100 XP',
+                      style: const TextStyle(
+                        color: AppColors.greyDark,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: xpIntoLevel / 100,
-                    minHeight: 8,
-                    backgroundColor: Colors.white.withValues(alpha: 0.3),
-                    valueColor: const AlwaysStoppedAnimation(Colors.white),
-                  ),
-                ),
+                XpBar(xp: user.xp, level: user.level),
                 if (questsState != null) ...[
                   const SizedBox(height: 14),
                   Row(
                     children: [
-                      const Icon(Icons.track_changes, size: 16, color: Colors.white),
+                      const Icon(
+                        Icons.track_changes,
+                        size: 16,
+                        color: AppColors.greyDark,
+                      ),
                       const SizedBox(width: 6),
                       Text(
-                        l10n.homeQuestsProgressToday(questsState.completedCount, questsState.totalCount),
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        l10n.homeQuestsProgressToday(
+                          questsState.completedCount,
+                          questsState.totalCount,
+                        ),
+                        style: const TextStyle(
+                          color: AppColors.greyDark,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
@@ -224,23 +289,38 @@ class _RecommendedQuestsSection extends ConsumerWidget {
           padding: const EdgeInsets.only(right: 20),
           child: Text(
             l10n.homeRecommendedQuests,
-            style: TextStyle(color: AppColors.pinkDark, fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: AppColors.pinkDark,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 96,
+          // Tall enough for a 2-line title (maxLines: 2) plus the XP badge
+          // in _MiniQuestCard below without overflowing — 96 was too tight
+          // once real (non-placeholder) quest titles were long enough to
+          // wrap to 2 lines.
+          height: 104,
           child: questsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, _) => const SizedBox.shrink(),
             data: (state) {
-              final pending = state.quests.where((q) => !q.isCompleted).take(5).toList();
+              final pending = state.quests
+                  .where((q) => !q.isCompleted && !q.locked)
+                  .take(5)
+                  .toList();
               if (pending.isEmpty) {
                 return Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.celebration_outlined, size: 18, color: AppColors.success),
+                      const Icon(
+                        Icons.celebration_outlined,
+                        size: 18,
+                        color: AppColors.success,
+                      ),
                       const SizedBox(width: 6),
                       Text(l10n.homeAllQuestsCompleted),
                     ],
@@ -252,7 +332,8 @@ class _RecommendedQuestsSection extends ConsumerWidget {
                 padding: const EdgeInsets.only(right: 20),
                 itemCount: pending.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, index) => _MiniQuestCard(quest: pending[index]),
+                itemBuilder: (context, index) =>
+                    _MiniQuestCard(quest: pending[index]),
               );
             },
           ),
@@ -276,7 +357,13 @@ class _MiniQuestCard extends StatelessWidget {
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.yellowSoft, width: 2),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 3))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,7 +375,10 @@ class _MiniQuestCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
           ),
-          Align(alignment: Alignment.centerLeft, child: XpBadge(xp: quest.xpReward)),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: XpBadge(xp: quest.xpReward),
+          ),
         ],
       ),
     );
@@ -306,11 +396,20 @@ class _NearbyPlacesSection extends ConsumerWidget {
       children: [
         Text(
           l10n.homeNearbyPlaces,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 12),
         pinsAsync.when(
-          loading: () => const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator())),
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(),
+            ),
+          ),
           error: (_, _) => Text(l10n.homeNearbyPlacesError),
           data: (pins) {
             final nearest = pins.take(4).toList();
@@ -359,9 +458,9 @@ class _NearbyPlaceTile extends StatelessWidget {
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => PinDetailScreen(pin: pin)),
-        ),
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => PinDetailScreen(pin: pin))),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -380,11 +479,18 @@ class _NearbyPlaceTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(pin.name, style: const TextStyle(fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+                    Text(
+                      pin.name,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       pin.city ?? pin.country,
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -416,7 +522,9 @@ class _EmergencyButton extends ConsumerWidget {
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.greyDark,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           onPressed: isSending ? null : () => _confirmResolve(context, ref),
           icon: const Icon(Icons.check_circle_outline),
@@ -431,14 +539,19 @@ class _EmergencyButton extends ConsumerWidget {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.danger,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         onPressed: isSending ? null : () => _confirmTrigger(context, ref),
         icon: isSending
             ? const SizedBox(
                 width: 18,
                 height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
               )
             : const Icon(Icons.emergency),
         label: Text(l10n.homeSosTriggerButton),
@@ -454,7 +567,10 @@ class _EmergencyButton extends ConsumerWidget {
         title: Text(l10n.homeSosConfirmTitle),
         content: Text(l10n.homeSosConfirmContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.homeSosCancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.homeSosCancel),
+          ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(context, true),
@@ -472,13 +588,19 @@ class _EmergencyButton extends ConsumerWidget {
     result.when(
       data: (event) {
         if (event == null) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.homeSosSentMessage)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.homeSosSentMessage)));
       },
       error: (error, _) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.homeSosSendFailed(error.toString().replaceFirst('Exception: ', '')))),
+          SnackBar(
+            content: Text(
+              l10n.homeSosSendFailed(
+                error.toString().replaceFirst('Exception: ', ''),
+              ),
+            ),
+          ),
         );
       },
       loading: () {},
@@ -493,7 +615,10 @@ class _EmergencyButton extends ConsumerWidget {
         title: Text(l10n.homeSosResolveTitle),
         content: Text(l10n.homeSosResolveContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.homeSosNotSafeYet)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.homeSosNotSafeYet),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(l10n.homeSosSafeConfirm),
@@ -531,7 +656,11 @@ class _ActionCard extends StatelessWidget {
             child: Icon(icon, size: 26, color: AppColors.pinkDark),
           ),
           const SizedBox(height: 6),
-          Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12),
+          ),
         ],
       ),
     );

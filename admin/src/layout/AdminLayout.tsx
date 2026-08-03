@@ -3,6 +3,7 @@ import { Layout, Menu, Typography, Avatar, Dropdown, Tag } from "antd";
 import {
   DashboardOutlined,
   EnvironmentOutlined,
+  FileSearchOutlined,
   TrophyOutlined,
   TeamOutlined,
   StarOutlined,
@@ -10,6 +11,8 @@ import {
   PhoneOutlined,
   CreditCardOutlined,
   LogoutOutlined,
+  BookOutlined,
+  GiftOutlined,
 } from "@ant-design/icons";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -19,7 +22,10 @@ const { Header, Sider, Content } = Layout;
 const NAV_ITEMS = [
   { key: "/", icon: <DashboardOutlined />, label: "ภาพรวม" },
   { key: "/pins", icon: <EnvironmentOutlined />, label: "Pins" },
+  { key: "/pin-suggestions", icon: <FileSearchOutlined />, label: "Pin Suggestions" },
   { key: "/quests", icon: <TrophyOutlined />, label: "Quests" },
+  { key: "/quest-chapters", icon: <BookOutlined />, label: "Quest Chapters" },
+  { key: "/achievements", icon: <GiftOutlined />, label: "Achievements" },
   { key: "/users", icon: <TeamOutlined />, label: "Users" },
   { key: "/reviews", icon: <StarOutlined />, label: "Reviews" },
   { key: "/safety", icon: <SafetyOutlined />, label: "Safety Zones" },

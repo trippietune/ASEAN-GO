@@ -7,12 +7,14 @@ class AppUser {
     required this.level,
     required this.isPremium,
     required this.coinBalance,
+    this.username,
     this.avatarUrl,
     this.xpToNextLevel,
   });
 
   final String id;
   final String email;
+  final String? username;
   final String displayName;
   final int xp;
   final int level;
@@ -25,6 +27,7 @@ class AppUser {
     return AppUser(
       id: json['id'] as String,
       email: json['email'] as String,
+      username: json['username'] as String?,
       displayName: json['display_name'] as String,
       xp: json['xp'] as int,
       level: json['level'] as int,
@@ -39,6 +42,7 @@ class AppUser {
     return AppUser(
       id: id,
       email: email,
+      username: username,
       displayName: displayName,
       xp: xp ?? this.xp,
       level: level ?? this.level,

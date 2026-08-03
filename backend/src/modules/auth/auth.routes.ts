@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { z } from "zod";
 import {
-  loginWithEmail,
   loginWithFacebook,
   loginWithGoogle,
+  loginWithIdentifier,
   registerWithEmail,
   requestPasswordReset,
   resetPassword,
@@ -16,17 +16,22 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   displayName: z.string().min(1).max(80),
+  username: z
+    .string()
+    .min(3)
+    .max(30)
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  identifier: z.string().min(1),
   password: z.string().min(1),
 });
 
 authRouter.post("/register", async (req, res, next) => {
   try {
-    const { email, password, displayName } = registerSchema.parse(req.body);
-    const user = await registerWithEmail(email, password, displayName);
+    const { email, password, displayName, username } = registerSchema.parse(req.body);
+    const user = await registerWithEmail(email, password, displayName, username);
     const token = signToken(user.id);
     res.status(201).json({ token, user });
   } catch (err) {
@@ -36,8 +41,8 @@ authRouter.post("/register", async (req, res, next) => {
 
 authRouter.post("/login", async (req, res, next) => {
   try {
-    const { email, password } = loginSchema.parse(req.body);
-    const user = await loginWithEmail(email, password);
+    const { identifier, password } = loginSchema.parse(req.body);
+    const user = await loginWithIdentifier(identifier, password);
     const token = signToken(user.id);
     res.json({ token, user });
   } catch (err) {

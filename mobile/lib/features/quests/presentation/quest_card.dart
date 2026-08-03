@@ -49,98 +49,125 @@ class _QuestCardState extends State<QuestCard> with SingleTickerProviderStateMix
     final l10n = AppLocalizations.of(context);
     final quest = widget.quest;
     final completed = quest.isCompleted;
-    final borderColor = completed ? AppColors.success : AppColors.yellowSoft;
+    final locked = quest.locked;
+    final borderColor = locked
+        ? Colors.grey.shade400
+        : (completed ? AppColors.success : AppColors.yellowSoft);
 
     final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: completed ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5) : Theme.of(context).colorScheme.onSurface,
+          color: (completed || locked)
+              ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
+              : Theme.of(context).colorScheme.onSurface,
           decoration: completed ? TextDecoration.lineThrough : null,
           fontSize: 16,
         );
 
     return FadeTransition(
       opacity: _fade,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color,
-          borderRadius: BorderRadius.circular(20),
-          border: Border(left: BorderSide(color: borderColor, width: 4)),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 3))],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                children: [
-                  Icon(
-                    completed ? Icons.check_circle : Icons.pending_actions,
-                    size: 26,
-                    color: completed ? AppColors.success : AppColors.pinkDark,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    completed ? l10n.questStatusCompleted : l10n.questStatusPending,
-                    style: TextStyle(fontSize: 10, color: completed ? AppColors.success : AppColors.pinkDark),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: Opacity(
+        opacity: locked ? 0.65 : 1.0,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: BorderRadius.circular(20),
+            border: Border(left: BorderSide(color: borderColor, width: 4)),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 3))],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
                   children: [
-                    Text(quest.title, style: titleStyle),
-                    if (quest.description != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        quest.description!,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                    Icon(
+                      locked
+                          ? Icons.lock_outline
+                          : (completed ? Icons.check_circle : Icons.pending_actions),
+                      size: 26,
+                      color: locked
+                          ? Colors.grey.shade500
+                          : (completed ? AppColors.success : AppColors.pinkDark),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      locked
+                          ? l10n.questLockedLabel
+                          : (completed ? l10n.questStatusCompleted : l10n.questStatusPending),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: locked
+                            ? Colors.grey.shade500
+                            : (completed ? AppColors.success : AppColors.pinkDark),
                       ),
-                    ],
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        XpBadge(xp: quest.xpReward),
-                        if (quest.coinReward > 0) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.yellowSoft,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              l10n.questCoinReward(quest.coinReward),
-                              style: const TextStyle(color: AppColors.greyDark, fontWeight: FontWeight.bold, fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              if (!completed)
-                SizedBox(
-                  height: 34,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      textStyle: const TextStyle(fontSize: 13),
-                    ),
-                    onPressed: widget.isSubmitting ? null : widget.onComplete,
-                    child: widget.isSubmitting
-                        ? const SizedBox(
-                            height: 14,
-                            width: 14,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : Text(l10n.questCardCompleteButton),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(quest.title, style: titleStyle),
+                      if (quest.description != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          quest.description!,
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                        ),
+                      ],
+                      if (locked && quest.unlockRequirements.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        for (final requirement in quest.unlockRequirements.where((r) => !r.satisfied))
+                          Text(
+                            requirement.description,
+                            style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontStyle: FontStyle.italic),
+                          ),
+                      ],
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          XpBadge(xp: quest.xpReward),
+                          if (quest.coinReward > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.yellowSoft,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                l10n.questCoinReward(quest.coinReward),
+                                style: const TextStyle(color: AppColors.greyDark, fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-            ],
+                const SizedBox(width: 8),
+                if (!completed && !locked)
+                  SizedBox(
+                    height: 34,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        textStyle: const TextStyle(fontSize: 13),
+                      ),
+                      onPressed: widget.isSubmitting ? null : widget.onComplete,
+                      child: widget.isSubmitting
+                          ? const SizedBox(
+                              height: 14,
+                              width: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(l10n.questCardCompleteButton),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

@@ -19,6 +19,7 @@ class VerifiedPin {
     this.isCheckpoint = false,
     this.isRecommended = false,
     this.hasActiveQuest = false,
+    this.isFavorited = false,
   });
 
   final String id;
@@ -40,6 +41,7 @@ class VerifiedPin {
   final bool isCheckpoint;
   final bool isRecommended;
   final bool hasActiveQuest;
+  final bool isFavorited;
 
   factory VerifiedPin.fromJson(Map<String, dynamic> json) {
     return VerifiedPin(
@@ -62,6 +64,32 @@ class VerifiedPin {
       isCheckpoint: json['is_checkpoint'] as bool? ?? false,
       isRecommended: json['is_recommended'] as bool? ?? false,
       hasActiveQuest: json['has_active_quest'] as bool? ?? false,
+      isFavorited: json['is_favorited'] as bool? ?? false,
+    );
+  }
+
+  VerifiedPin copyWith({bool? isFavorited}) {
+    return VerifiedPin(
+      id: id,
+      name: name,
+      category: category,
+      country: country,
+      city: city,
+      lat: lat,
+      lng: lng,
+      isVerified: isVerified,
+      isScamAlert: isScamAlert,
+      safetyScore: safetyScore,
+      averageRating: averageRating,
+      reviewCount: reviewCount,
+      reportCount: reportCount,
+      description: description,
+      scamAlertMessage: scamAlertMessage,
+      photoUrls: photoUrls,
+      isCheckpoint: isCheckpoint,
+      isRecommended: isRecommended,
+      hasActiveQuest: hasActiveQuest,
+      isFavorited: isFavorited ?? this.isFavorited,
     );
   }
 }

@@ -11,8 +11,6 @@ import 'auth_controller.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 
-final _emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -22,7 +20,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   final _rememberedEmailStore = RememberedEmailStore();
   bool _obscurePassword = true;
@@ -33,7 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void initState() {
     super.initState();
     _restoreRememberedEmail();
-    _emailController.addListener(_revalidate);
+    _identifierController.addListener(_revalidate);
     _passwordController.addListener(_revalidate);
   }
 
@@ -41,27 +39,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final saved = await _rememberedEmailStore.read();
     if (saved != null && mounted) {
       setState(() {
-        _emailController.text = saved;
+        _identifierController.text = saved;
         _rememberMe = true;
       });
     }
   }
 
   void _revalidate() {
-    final valid = _emailRegex.hasMatch(_emailController.text.trim()) && _passwordController.text.isNotEmpty;
+    final valid = _identifierController.text.trim().isNotEmpty && _passwordController.text.isNotEmpty;
     if (valid != _formValid) setState(() => _formValid = valid);
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  String? _validateEmail(AppLocalizations l10n, String? value) {
-    if (value == null || value.isEmpty) return l10n.emailRequiredValidator;
-    if (!_emailRegex.hasMatch(value)) return l10n.emailValidator;
+  String? _validateIdentifier(AppLocalizations l10n, String? value) {
+    if (value == null || value.trim().isEmpty) return l10n.usernameOrEmailRequiredValidator;
     return null;
   }
 
@@ -73,17 +70,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final l10n = AppLocalizations.of(context);
-    final email = _emailController.text.trim();
+    final identifier = _identifierController.text.trim();
 
     if (_rememberMe) {
-      await _rememberedEmailStore.save(email);
+      await _rememberedEmailStore.save(identifier);
     } else {
       await _rememberedEmailStore.clear();
     }
 
     if (!mounted) return;
     await ref.read(authControllerProvider.notifier).login(
-          email,
+          identifier,
           _passwordController.text,
           fallbackError: l10n.loginFailedFallback,
         );
@@ -165,14 +162,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 32),
                       TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        autofillHints: const [AutofillHints.email],
+                        controller: _identifierController,
+                        keyboardType: TextInputType.text,
+                        autofillHints: const [AutofillHints.username, AutofillHints.email],
                         decoration: InputDecoration(
-                          labelText: l10n.emailLabel,
-                          prefixIcon: const Icon(Icons.email_outlined),
+                          labelText: l10n.usernameOrEmailLabel,
+                          prefixIcon: const Icon(Icons.person_outline),
                         ),
-                        validator: (v) => _validateEmail(l10n, v),
+                        validator: (v) => _validateIdentifier(l10n, v),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(

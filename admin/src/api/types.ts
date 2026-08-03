@@ -57,13 +57,38 @@ export interface AdminPin {
   report_count: number;
 }
 
-export type QuestType = "daily" | "weekly" | "recommended";
+export type PinSuggestionStatus = "pending" | "approved" | "rejected";
+
+export interface AdminPinSuggestion {
+  id: string;
+  name: string;
+  category: PinCategory;
+  description: string | null;
+  country: string;
+  city: string | null;
+  lat: number;
+  lng: number;
+  photo_urls: string[];
+  submitted_by: string;
+  submitted_by_name: string | null;
+  status: PinSuggestionStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  rejection_reason: string | null;
+  resulting_pin_id: string | null;
+  created_at: string;
+}
+
+export type QuestType = "daily" | "location" | "category" | "level" | "story";
 
 export interface AdminQuest {
   id: string;
   title: string;
   description: string | null;
   quest_type: QuestType;
+  category: string | null;
+  chapter_id: string | null;
+  chapter_order: number | null;
   xp_reward: number;
   coin_reward: number;
   pin_id: string | null;
@@ -73,6 +98,57 @@ export interface AdminQuest {
   active_until: string | null;
   created_at: string;
   completed_count: number;
+}
+
+export interface AdminQuestChapter {
+  id: string;
+  title: string;
+  description: string | null;
+  order_index: number;
+  quest_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type UnlockRequirementType = "level" | "quest" | "checkin" | "category" | "location";
+
+export type AchievementCriteriaType =
+  | "quests_completed"
+  | "checkins"
+  | "level_reached"
+  | "category_visits"
+  | "chapter_completed"
+  | "manual";
+
+export interface AdminAchievement {
+  id: string;
+  title: string;
+  description: string | null;
+  icon_url: string | null;
+  criteria_type: AchievementCriteriaType;
+  criteria_category: string | null;
+  criteria_chapter_id: string | null;
+  count_threshold: number | null;
+  xp_reward: number;
+  coin_reward: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminQuestUnlockRequirement {
+  id: string;
+  quest_id: string;
+  requirement_type: UnlockRequirementType;
+  min_level: number | null;
+  required_quest_id: string | null;
+  required_pin_id: string | null;
+  category: string | null;
+  country: string | null;
+  city: string | null;
+  count_threshold: number | null;
+  source: "admin" | "chapter_auto";
+  created_at: string;
 }
 
 export interface AdminReview {

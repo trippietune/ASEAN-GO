@@ -12,11 +12,13 @@ describe("POST /auth/register", () => {
       email: "newuser@example.com",
       password: "password123",
       displayName: "New User",
+      username: "newuser",
     });
 
     expect(res.status).toBe(201);
     expect(res.body.user.email).toBe("newuser@example.com");
     expect(res.body.user.display_name).toBe("New User");
+    expect(res.body.user.username).toBe("newuser");
     expect(res.body.user.role).toBe("user");
     // Password hash must never be echoed back to the client.
     expect(res.body.user.password_hash).toBeUndefined();
@@ -30,15 +32,57 @@ describe("POST /auth/register", () => {
       email: "dupe@example.com",
       password: "password123",
       displayName: "First",
+      username: "dupefirst",
     });
 
     const res = await request(app).post("/auth/register").send({
       email: "dupe@example.com",
       password: "differentpassword",
       displayName: "Second",
+      username: "dupesecond",
     });
 
     expect(res.status).toBe(409);
+  });
+
+  it("rejects a duplicate username, case-insensitively", async () => {
+    await request(app).post("/auth/register").send({
+      email: "userone@example.com",
+      password: "password123",
+      displayName: "User One",
+      username: "TestUser",
+    });
+
+    const res = await request(app).post("/auth/register").send({
+      email: "usertwo@example.com",
+      password: "password123",
+      displayName: "User Two",
+      username: "testuser",
+    });
+
+    expect(res.status).toBe(409);
+  });
+
+  it("rejects a username with invalid characters", async () => {
+    const res = await request(app).post("/auth/register").send({
+      email: "badusername@example.com",
+      password: "password123",
+      displayName: "Bad Username",
+      username: "bad user!",
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects a username shorter than 3 characters", async () => {
+    const res = await request(app).post("/auth/register").send({
+      email: "shortusername@example.com",
+      password: "password123",
+      displayName: "Short Username",
+      username: "ab",
+    });
+
+    expect(res.status).toBe(400);
   });
 
   it("rejects a password shorter than 8 characters", async () => {
@@ -46,6 +90,7 @@ describe("POST /auth/register", () => {
       email: "shortpw@example.com",
       password: "short",
       displayName: "Short PW",
+      username: "shortpw",
     });
 
     expect(res.status).toBe(400);
@@ -56,6 +101,7 @@ describe("POST /auth/register", () => {
       email: "not-an-email",
       password: "password123",
       displayName: "Bad Email",
+      username: "bademail",
     });
 
     expect(res.status).toBe(400);
@@ -63,15 +109,16 @@ describe("POST /auth/register", () => {
 });
 
 describe("POST /auth/login", () => {
-  it("logs in with correct credentials", async () => {
+  it("logs in with correct credentials via email", async () => {
     await request(app).post("/auth/register").send({
       email: "logintest@example.com",
       password: "correctpassword",
       displayName: "Login Test",
+      username: "logintest",
     });
 
     const res = await request(app).post("/auth/login").send({
-      email: "logintest@example.com",
+      identifier: "logintest@example.com",
       password: "correctpassword",
     });
 
@@ -79,27 +126,83 @@ describe("POST /auth/login", () => {
     expect(res.body.token).toBeTruthy();
   });
 
-  it("rejects a wrong password without leaking whether the email exists", async () => {
+  it("logs in with a username instead of email", async () => {
+    await request(app).post("/auth/register").send({
+      email: "byusername@example.com",
+      password: "correctpassword",
+      displayName: "By Username",
+      username: "byusername",
+    });
+
+    const res = await request(app).post("/auth/login").send({
+      identifier: "byusername",
+      password: "correctpassword",
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.email).toBe("byusername@example.com");
+  });
+
+  it("logs in with a username in different case than registered", async () => {
+    await request(app).post("/auth/register").send({
+      email: "casetest@example.com",
+      password: "correctpassword",
+      displayName: "Case Test",
+      username: "CaseTest",
+    });
+
+    const res = await request(app).post("/auth/login").send({
+      identifier: "casetest",
+      password: "correctpassword",
+    });
+
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects a wrong password without leaking whether the account exists", async () => {
     await request(app).post("/auth/register").send({
       email: "wrongpw@example.com",
       password: "correctpassword",
       displayName: "Wrong PW",
+      username: "wrongpw",
     });
 
     const wrongPassword = await request(app).post("/auth/login").send({
-      email: "wrongpw@example.com",
+      identifier: "wrongpw@example.com",
       password: "incorrectpassword",
     });
-    const nonexistentEmail = await request(app).post("/auth/login").send({
-      email: "doesnotexist@example.com",
+    const nonexistentIdentifier = await request(app).post("/auth/login").send({
+      identifier: "doesnotexist@example.com",
       password: "whatever123",
     });
 
     expect(wrongPassword.status).toBe(401);
-    expect(nonexistentEmail.status).toBe(401);
-    // Same message for both cases — an attacker probing for valid emails
-    // shouldn't be able to distinguish "wrong password" from "no such user".
-    expect(wrongPassword.body.error).toBe(nonexistentEmail.body.error);
+    expect(nonexistentIdentifier.status).toBe(401);
+    // Same message for both cases — an attacker probing for valid accounts
+    // shouldn't be able to distinguish "wrong password" from "no such account".
+    expect(wrongPassword.body.error).toBe(nonexistentIdentifier.body.error);
+  });
+
+  it("rejects a wrong password when logging in by username, without leaking whether the username exists", async () => {
+    await request(app).post("/auth/register").send({
+      email: "wrongpwuser@example.com",
+      password: "correctpassword",
+      displayName: "Wrong PW User",
+      username: "wrongpwuser",
+    });
+
+    const wrongPassword = await request(app).post("/auth/login").send({
+      identifier: "wrongpwuser",
+      password: "incorrectpassword",
+    });
+    const nonexistentUsername = await request(app).post("/auth/login").send({
+      identifier: "nosuchusername",
+      password: "whatever123",
+    });
+
+    expect(wrongPassword.status).toBe(401);
+    expect(nonexistentUsername.status).toBe(401);
+    expect(wrongPassword.body.error).toBe(nonexistentUsername.body.error);
   });
 });
 
@@ -163,11 +266,12 @@ describe("POST /auth/facebook", () => {
     (env as { facebookAppSecret?: string }).facebookAppSecret = undefined;
   });
 
-  it("refuses to sign in when the email is already registered under a different provider", async () => {
-    await request(app).post("/auth/register").send({
+  it("logs into the existing account when the email is already registered under a different provider", async () => {
+    const registerRes = await request(app).post("/auth/register").send({
       email: "shared@example.com",
       password: "password123",
       displayName: "Email User",
+      username: "sharedemailuser",
     });
 
     (env as { facebookAppId?: string }).facebookAppId = "test-app-id";
@@ -186,8 +290,14 @@ describe("POST /auth/facebook", () => {
       })
     );
 
+    // The Facebook profile's verified email matches an existing
+    // email/password account — that's proof enough of ownership, so this
+    // logs into the same account rather than being refused or creating a
+    // duplicate.
     const res = await request(app).post("/auth/facebook").send({ accessToken: "valid-token" });
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(200);
+    expect(res.body.user.id).toBe(registerRes.body.user.id);
+    expect(res.body.user.auth_provider).toBe("email");
 
     (env as { facebookAppId?: string }).facebookAppId = undefined;
     (env as { facebookAppSecret?: string }).facebookAppSecret = undefined;

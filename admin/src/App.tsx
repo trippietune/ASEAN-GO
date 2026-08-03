@@ -6,7 +6,10 @@ import AdminLayout from "./layout/AdminLayout";
 import LoginPage from "./pages/LoginPage";
 import StatsPage from "./pages/StatsPage";
 import PinsPage from "./pages/PinsPage";
+import PinSuggestionsPage from "./pages/PinSuggestionsPage";
 import QuestsPage from "./pages/QuestsPage";
+import QuestChaptersPage from "./pages/QuestChaptersPage";
+import AchievementsPage from "./pages/AchievementsPage";
 import UsersPage from "./pages/UsersPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import SafetyPage from "./pages/SafetyPage";
@@ -29,7 +32,10 @@ export default function App() {
             >
               <Route path="/" element={<StatsPage />} />
               <Route path="/pins" element={<PinsPage />} />
+              <Route path="/pin-suggestions" element={<PinSuggestionsPage />} />
               <Route path="/quests" element={<QuestsPage />} />
+              <Route path="/quest-chapters" element={<QuestChaptersPage />} />
+              <Route path="/achievements" element={<AchievementsPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/reviews" element={<ReviewsPage />} />
               <Route path="/safety" element={<SafetyPage />} />

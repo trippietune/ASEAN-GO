@@ -25,6 +25,19 @@ class AppLocalizationsTh extends AppLocalizations {
   String get displayNameValidator => 'กรุณากรอกชื่อนะ';
 
   @override
+  String get usernameLabel => 'ชื่อผู้ใช้';
+
+  @override
+  String get usernameValidator =>
+      'ชื่อผู้ใช้ต้องมี 3-30 ตัวอักษร (ใช้ได้แค่ตัวอักษร ตัวเลข และขีดล่าง)';
+
+  @override
+  String get usernameOrEmailLabel => 'ชื่อผู้ใช้หรืออีเมล';
+
+  @override
+  String get usernameOrEmailRequiredValidator => 'กรุณากรอกชื่อผู้ใช้หรืออีเมล';
+
+  @override
   String get emailLabel => 'อีเมล';
 
   @override
@@ -403,6 +416,19 @@ class AppLocalizationsTh extends AppLocalizations {
   String get pinDetailCheckInError => 'เช็คอินไม่สำเร็จ ลองอีกครั้งนะ';
 
   @override
+  String get pinDetailFavoriteAdded => 'บันทึกเป็นรายการโปรดแล้ว';
+
+  @override
+  String get pinDetailFavoriteRemoved => 'ลบออกจากรายการโปรดแล้ว';
+
+  @override
+  String get pinDetailFavoriteError =>
+      'อัปเดตรายการโปรดไม่สำเร็จ ลองอีกครั้งนะ';
+
+  @override
+  String get pinDetailAddToScheduleButton => 'เพิ่มลงตารางเที่ยว';
+
+  @override
   String get pinDetailNavigatePlaceholder =>
       'กำลังพาไปทางนั้นนะ... (ตัวอย่างเท่านั้น ยังไม่เชื่อมต่อจริง)';
 
@@ -487,7 +513,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get writeReviewSubmit => 'ส่งรีวิว';
 
   @override
-  String get submitPinTitle => 'เพิ่มจุดใหม่';
+  String get submitPinTitle => 'แนะนำสถานที่ใหม่';
 
   @override
   String get submitPinDragMapHint => 'ลากแผนที่เพื่อปักหมุด';
@@ -511,7 +537,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get submitPinAttachPhotos => 'แนบรูปภาพ';
 
   @override
-  String get submitPinSubmitButton => 'ส่งจุดนี้';
+  String get submitPinSubmitButton => 'ส่งคำแนะนำ';
 
   @override
   String get submitPinSuccess => 'ส่งจุดใหม่แล้ว รอทีมงานตรวจสอบก่อนนะ';
@@ -620,6 +646,45 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get profileMyCollectionsTitle => 'ของสะสมของฉัน';
+
+  @override
+  String get profileFavoritesLabel => 'รายการโปรด';
+
+  @override
+  String get favoritesScreenTitle => 'รายการโปรด';
+
+  @override
+  String get favoritesEmptyState =>
+      'ยังไม่มีรายการโปรด กดรูปหัวใจที่หมุดเพื่อบันทึกไว้ที่นี่';
+
+  @override
+  String get scheduleScreenTitle => 'ตารางเที่ยว';
+
+  @override
+  String get scheduleEmptyState => 'ยังไม่มีแผนสำหรับวันนี้';
+
+  @override
+  String get scheduleAddButton => 'เพิ่มลงตารางเที่ยว';
+
+  @override
+  String get scheduleDatePickerLabel => 'เปลี่ยนวันที่';
+
+  @override
+  String get scheduleItemAdded => 'เพิ่มลงตารางเที่ยวแล้ว';
+
+  @override
+  String get scheduleItemAddError =>
+      'เพิ่มลงตารางเที่ยวไม่สำเร็จ ลองอีกครั้งนะ';
+
+  @override
+  String get scheduleItemDuplicateError =>
+      'สถานที่นี้อยู่ในตารางเที่ยววันนั้นแล้ว';
+
+  @override
+  String get scheduleItemRemoved => 'ลบออกจากตารางเที่ยวแล้ว';
+
+  @override
+  String get scheduleItemDeleteConfirm => 'ลบสถานที่นี้ออกจากตารางเที่ยวไหม?';
 
   @override
   String get profileStoreLabel => 'ร้านค้า';
@@ -961,4 +1026,63 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get questsKeepGoingBanner => 'ทำต่ออีกนิดนะ สู้ๆ';
+
+  @override
+  String get questTypeDaily => 'รายวัน';
+
+  @override
+  String get questTypeLocation => 'สถานที่';
+
+  @override
+  String get questTypeCategory => 'หมวดหมู่';
+
+  @override
+  String get questTypeLevel => 'เลเวล';
+
+  @override
+  String get questTypeStory => 'เนื้อเรื่อง';
+
+  @override
+  String get questLockedLabel => 'ล็อคอยู่';
+
+  @override
+  String questUnlockAchievementToast(String title) {
+    return 'ปลดล็อค Achievement: $title';
+  }
+
+  @override
+  String get achievementsScreenTitle => 'Achievements';
+
+  @override
+  String achievementsLoadError(String error) {
+    return 'โหลด Achievements ไม่สำเร็จ ลองใหม่อีกครั้ง\n$error';
+  }
+
+  @override
+  String get achievementsEmptyState => 'ยังไม่มี Achievement';
+
+  @override
+  String get achievementLockedLabel => 'ล็อคอยู่';
+
+  @override
+  String get achievementUnlockedLabel => 'ปลดล็อคแล้ว';
+
+  @override
+  String get profileAchievementsLabel => 'Achievements';
+
+  @override
+  String get levelUpTitle => 'เลเวลอัพ!';
+
+  @override
+  String levelUpBody(Object level) {
+    return 'คุณถึงเลเวล $level แล้ว';
+  }
+
+  @override
+  String levelUpSkippedLevels(Object count) {
+    return 'คุณข้ามไป $count เลเวล!';
+  }
+
+  @override
+  String get levelUpContinueButton => 'เยี่ยมมาก!';
 }

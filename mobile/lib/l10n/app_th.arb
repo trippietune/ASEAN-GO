@@ -20,6 +20,22 @@
   "@displayNameValidator": {
     "description": "Validation error when display name is empty"
   },
+  "usernameLabel": "ชื่อผู้ใช้",
+  "@usernameLabel": {
+    "description": "Username field label"
+  },
+  "usernameValidator": "ชื่อผู้ใช้ต้องมี 3-30 ตัวอักษร (ใช้ได้แค่ตัวอักษร ตัวเลข และขีดล่าง)",
+  "@usernameValidator": {
+    "description": "Validation error for invalid username format/length"
+  },
+  "usernameOrEmailLabel": "ชื่อผู้ใช้หรืออีเมล",
+  "@usernameOrEmailLabel": {
+    "description": "Login screen combined username-or-email field label"
+  },
+  "usernameOrEmailRequiredValidator": "กรุณากรอกชื่อผู้ใช้หรืออีเมล",
+  "@usernameOrEmailRequiredValidator": {
+    "description": "Validation error when the login identifier field is empty"
+  },
   "emailLabel": "อีเมล",
   "@emailLabel": {
     "description": "Email field label"
@@ -520,6 +536,22 @@
   "@pinDetailCheckInError": {
     "description": "Snackbar shown on generic check-in failure"
   },
+  "pinDetailFavoriteAdded": "บันทึกเป็นรายการโปรดแล้ว",
+  "@pinDetailFavoriteAdded": {
+    "description": "Snackbar shown after favoriting a pin"
+  },
+  "pinDetailFavoriteRemoved": "ลบออกจากรายการโปรดแล้ว",
+  "@pinDetailFavoriteRemoved": {
+    "description": "Snackbar shown after unfavoriting a pin"
+  },
+  "pinDetailFavoriteError": "อัปเดตรายการโปรดไม่สำเร็จ ลองอีกครั้งนะ",
+  "@pinDetailFavoriteError": {
+    "description": "Snackbar shown when favoriting/unfavoriting fails"
+  },
+  "pinDetailAddToScheduleButton": "เพิ่มลงตารางเที่ยว",
+  "@pinDetailAddToScheduleButton": {
+    "description": "Pin detail screen button to add this pin to the user's schedule"
+  },
   "pinDetailNavigatePlaceholder": "กำลังพาไปทางนั้นนะ... (ตัวอย่างเท่านั้น ยังไม่เชื่อมต่อจริง)",
   "@pinDetailNavigatePlaceholder": {
     "description": "Snackbar placeholder shown when tapping Navigate (feature not implemented)"
@@ -628,7 +660,7 @@
   "@writeReviewSubmit": {
     "description": "Submit button label when writing a new review"
   },
-  "submitPinTitle": "เพิ่มจุดใหม่",
+  "submitPinTitle": "แนะนำสถานที่ใหม่",
   "@submitPinTitle": {
     "description": "Submit pin screen app bar title"
   },
@@ -660,7 +692,7 @@
   "@submitPinAttachPhotos": {
     "description": "Label above the photo picker grid in submit pin screen"
   },
-  "submitPinSubmitButton": "ส่งจุดนี้",
+  "submitPinSubmitButton": "ส่งคำแนะนำ",
   "@submitPinSubmitButton": {
     "description": "Submit button label on submit pin screen"
   },
@@ -810,6 +842,54 @@
   "profileMyCollectionsTitle": "ของสะสมของฉัน",
   "@profileMyCollectionsTitle": {
     "description": "Profile screen section title for inventory/collectibles"
+  },
+  "profileFavoritesLabel": "รายการโปรด",
+  "@profileFavoritesLabel": {
+    "description": "Profile screen list tile label linking to the favorites screen"
+  },
+  "favoritesScreenTitle": "รายการโปรด",
+  "@favoritesScreenTitle": {
+    "description": "Favorites screen app bar title"
+  },
+  "favoritesEmptyState": "ยังไม่มีรายการโปรด กดรูปหัวใจที่หมุดเพื่อบันทึกไว้ที่นี่",
+  "@favoritesEmptyState": {
+    "description": "Empty state message when the user has no favorited pins"
+  },
+  "scheduleScreenTitle": "ตารางเที่ยว",
+  "@scheduleScreenTitle": {
+    "description": "Schedule tab/screen title"
+  },
+  "scheduleEmptyState": "ยังไม่มีแผนสำหรับวันนี้",
+  "@scheduleEmptyState": {
+    "description": "Empty state message when there are no schedule items for the selected date"
+  },
+  "scheduleAddButton": "เพิ่มลงตารางเที่ยว",
+  "@scheduleAddButton": {
+    "description": "Button label for adding a place to the schedule"
+  },
+  "scheduleDatePickerLabel": "เปลี่ยนวันที่",
+  "@scheduleDatePickerLabel": {
+    "description": "Label next to the date picker row on the Schedule screen"
+  },
+  "scheduleItemAdded": "เพิ่มลงตารางเที่ยวแล้ว",
+  "@scheduleItemAdded": {
+    "description": "Snackbar shown after successfully adding a place to the schedule"
+  },
+  "scheduleItemAddError": "เพิ่มลงตารางเที่ยวไม่สำเร็จ ลองอีกครั้งนะ",
+  "@scheduleItemAddError": {
+    "description": "Snackbar shown when adding to the schedule fails"
+  },
+  "scheduleItemDuplicateError": "สถานที่นี้อยู่ในตารางเที่ยววันนั้นแล้ว",
+  "@scheduleItemDuplicateError": {
+    "description": "Snackbar shown when the pin is already scheduled for that date (409)"
+  },
+  "scheduleItemRemoved": "ลบออกจากตารางเที่ยวแล้ว",
+  "@scheduleItemRemoved": {
+    "description": "Snackbar shown after removing a schedule item"
+  },
+  "scheduleItemDeleteConfirm": "ลบสถานที่นี้ออกจากตารางเที่ยวไหม?",
+  "@scheduleItemDeleteConfirm": {
+    "description": "Confirmation dialog message before deleting a schedule item"
   },
   "profileStoreLabel": "ร้านค้า",
   "@profileStoreLabel": {
@@ -1278,5 +1358,83 @@
   "questsKeepGoingBanner": "ทำต่ออีกนิดนะ สู้ๆ",
   "@questsKeepGoingBanner": {
     "description": "Banner text on quests screen encouraging user to keep completing quests"
+  },
+  "questTypeDaily": "รายวัน",
+  "@questTypeDaily": {
+    "description": "Section header label for daily-type quests"
+  },
+  "questTypeLocation": "สถานที่",
+  "@questTypeLocation": {
+    "description": "Section header label for location-type quests"
+  },
+  "questTypeCategory": "หมวดหมู่",
+  "@questTypeCategory": {
+    "description": "Section header label for category-type quests"
+  },
+  "questTypeLevel": "เลเวล",
+  "@questTypeLevel": {
+    "description": "Section header label for level-type quests"
+  },
+  "questTypeStory": "เนื้อเรื่อง",
+  "@questTypeStory": {
+    "description": "Section header label for story-type quests"
+  },
+  "questLockedLabel": "ล็อคอยู่",
+  "@questLockedLabel": {
+    "description": "Badge text on a locked quest card"
+  },
+  "questUnlockAchievementToast": "ปลดล็อค Achievement: {title}",
+  "@questUnlockAchievementToast": {
+    "description": "Toast shown after completing a quest that also unlocked an achievement",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "achievementsScreenTitle": "Achievements",
+  "@achievementsScreenTitle": {
+    "description": "Achievements screen app bar title"
+  },
+  "achievementsLoadError": "โหลด Achievements ไม่สำเร็จ ลองใหม่อีกครั้ง\n{error}",
+  "@achievementsLoadError": {
+    "description": "Error message shown when achievements fail to load",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "achievementsEmptyState": "ยังไม่มี Achievement",
+  "@achievementsEmptyState": {
+    "description": "Empty state message on achievements screen"
+  },
+  "achievementLockedLabel": "ล็อคอยู่",
+  "@achievementLockedLabel": {
+    "description": "Badge text on a locked achievement card"
+  },
+  "achievementUnlockedLabel": "ปลดล็อคแล้ว",
+  "@achievementUnlockedLabel": {
+    "description": "Badge text on an unlocked achievement card"
+  },
+  "profileAchievementsLabel": "Achievements",
+  "@profileAchievementsLabel": {
+    "description": "Label on the Profile screen entry point linking to the Achievements screen"
+  },
+  "levelUpTitle": "เลเวลอัพ!",
+  "@levelUpTitle": {
+    "description": "Level-up modal title"
+  },
+  "levelUpBody": "คุณถึงเลเวล {level} แล้ว",
+  "@levelUpBody": {
+    "description": "Level-up modal body showing the new level reached"
+  },
+  "levelUpSkippedLevels": "คุณข้ามไป {count} เลเวล!",
+  "@levelUpSkippedLevels": {
+    "description": "Level-up modal flourish line shown when a level-skip fired"
+  },
+  "levelUpContinueButton": "เยี่ยมมาก!",
+  "@levelUpContinueButton": {
+    "description": "Level-up modal dismiss/continue button label"
   }
 }

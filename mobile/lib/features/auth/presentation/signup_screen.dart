@@ -22,6 +22,7 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _displayNameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -40,6 +41,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   void dispose() {
     _displayNameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -49,6 +51,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   String? _validateEmail(AppLocalizations l10n, String? value) {
     if (value == null || value.isEmpty) return l10n.emailRequiredValidator;
     if (!_emailRegex.hasMatch(value)) return l10n.emailValidator;
+    return null;
+  }
+
+  String? _validateUsername(AppLocalizations l10n, String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.length < 3 || trimmed.length > 30 || !RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(trimmed)) {
+      return l10n.usernameValidator;
+    }
     return null;
   }
 
@@ -68,6 +78,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           _emailController.text.trim(),
           _passwordController.text,
           _displayNameController.text.trim(),
+          _usernameController.text.trim(),
           fallbackError: l10n.registerFailedFallback,
         );
   }
@@ -152,6 +163,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           prefixIcon: const Icon(Icons.person_outline),
                         ),
                         validator: (v) => (v == null || v.trim().isEmpty) ? l10n.displayNameValidator : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _usernameController,
+                        textInputAction: TextInputAction.next,
+                        autofillHints: const [AutofillHints.newUsername],
+                        decoration: InputDecoration(
+                          labelText: l10n.usernameLabel,
+                          prefixIcon: const Icon(Icons.alternate_email),
+                        ),
+                        validator: (v) => _validateUsername(l10n, v),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(

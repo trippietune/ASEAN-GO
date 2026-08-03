@@ -33,31 +33,20 @@ class PinsRepository {
     return VerifiedPin.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Submits a new pin candidate — starts unverified pending admin review
-  /// (see backend POST /pins).
-  Future<VerifiedPin> createPin({
-    required String name,
-    required String category,
-    required String country,
-    required double lat,
-    required double lng,
-    String? description,
-    String? city,
-    List<String> photoUrls = const [],
-  }) async {
-    final response = await _client.dio.post('/pins', data: {
-      'name': name,
-      'category': category,
-      'country': country,
-      'lat': lat,
-      'lng': lng,
-      // ignore: use_null_aware_elements
-      if (description != null && description.isNotEmpty) 'description': description,
-      // ignore: use_null_aware_elements
-      if (city != null && city.isNotEmpty) 'city': city,
-      'photoUrls': photoUrls,
-    });
-    return VerifiedPin.fromJson(response.data as Map<String, dynamic>);
+  /// Idempotent — favoriting an already-favorited pin (or unfavoriting one
+  /// that isn't) simply returns the same target state.
+  Future<bool> setFavorite(String pinId, bool favorited) async {
+    final response = favorited
+        ? await _client.dio.post('/pins/$pinId/favorite')
+        : await _client.dio.delete('/pins/$pinId/favorite');
+    return response.data['isFavorited'] as bool;
+  }
+
+  Future<List<VerifiedPin>> fetchFavorites() async {
+    final response = await _client.dio.get('/pins/favorites');
+    return (response.data as List)
+        .map((e) => VerifiedPin.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }
 

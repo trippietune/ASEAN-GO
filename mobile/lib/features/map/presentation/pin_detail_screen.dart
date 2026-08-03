@@ -10,6 +10,7 @@ import '../../auth/presentation/auth_controller.dart';
 import '../../safety/presentation/report_risk_dialog.dart';
 import '../../safety/presentation/risk_report_card.dart';
 import '../../safety/presentation/risk_reports_controller.dart';
+import '../../schedule/presentation/schedule_controller.dart';
 import '../data/pin_model.dart';
 import 'map_controller.dart';
 import 'review_card.dart';
@@ -28,6 +29,31 @@ class PinDetailScreen extends ConsumerStatefulWidget {
 
 class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
   bool _checkingIn = false;
+  late bool _isFavorited = widget.pin.isFavorited;
+  bool _togglingFavorite = false;
+
+  Future<void> _toggleFavorite() async {
+    final target = !_isFavorited;
+    setState(() {
+      _isFavorited = target;
+      _togglingFavorite = true;
+    });
+    final l10n = AppLocalizations.of(context);
+    try {
+      final result = await ref.read(pinsRepositoryProvider).setFavorite(widget.pin.id, target);
+      if (!mounted) return;
+      setState(() => _isFavorited = result);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result ? l10n.pinDetailFavoriteAdded : l10n.pinDetailFavoriteRemoved)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isFavorited = !target);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.pinDetailFavoriteError)));
+    } finally {
+      if (mounted) setState(() => _togglingFavorite = false);
+    }
+  }
 
   Future<void> _checkIn() async {
     setState(() => _checkingIn = true);
@@ -56,6 +82,45 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
     );
   }
 
+  String? _formatTimeOfDay(TimeOfDay? time) {
+    if (time == null) return null;
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _addToSchedule() async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+    );
+    if (picked == null || !mounted) return;
+
+    // Both time pickers are optional — dismissing either just skips it,
+    // since a schedule entry with only a date is still useful (matches the
+    // Schedule tab's own "date only" v1 scope).
+    final startTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    if (!mounted) return;
+    final endTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    if (!mounted) return;
+
+    final error = await ref.read(scheduleControllerProvider.notifier).addItem(
+          pinId: widget.pin.id,
+          scheduledDate: DateTime(picked.year, picked.month, picked.day),
+          startTime: _formatTimeOfDay(startTime),
+          endTime: _formatTimeOfDay(endTime),
+        );
+    if (!mounted) return;
+
+    final message = error == null
+        ? l10n.scheduleItemAdded
+        : (error is DioException && error.response?.statusCode == 409)
+            ? l10n.scheduleItemDuplicateError
+            : l10n.scheduleItemAddError;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _deleteReview() async {
     final success = await ref.read(reviewsControllerProvider(widget.pin.id).notifier).deleteMyReview();
     if (!mounted) return;
@@ -75,7 +140,15 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(pin.name)),
+      appBar: AppBar(
+        title: Text(pin.name),
+        actions: [
+          IconButton(
+            onPressed: _togglingFavorite ? null : _toggleFavorite,
+            icon: Icon(_isFavorited ? Icons.favorite : Icons.favorite_border, color: AppColors.pinkDark),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -199,6 +272,15 @@ class _PinDetailScreenState extends ConsumerState<PinDetailScreen> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _addToSchedule,
+              icon: const Icon(Icons.event_note_outlined),
+              label: Text(l10n.pinDetailAddToScheduleButton),
+            ),
           ),
           const SizedBox(height: 28),
           Row(

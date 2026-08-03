@@ -4,6 +4,11 @@ import { pool } from "../../db/pool";
 import { requireAuth, AuthedRequest } from "../../middleware/auth";
 import { HttpError } from "../../middleware/errorHandler";
 import { deleteAssetsByUrls } from "../media/media.service";
+// Not hooking evaluateAchievements into this route: none of the 5 criteria
+// types (quests_completed/checkins/level_reached/category_visits/
+// chapter_completed) can change as a result of posting a review, so the
+// check would never award anything. Revisit if a review-based criteria type
+// is added later.
 
 export const reviewsRouter = Router();
 

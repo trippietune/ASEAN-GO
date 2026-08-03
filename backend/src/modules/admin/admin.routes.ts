@@ -5,6 +5,8 @@ import { requireAuth } from "../../middleware/auth";
 import { requireAdmin, requireModerator, AdminRequest } from "../../middleware/adminAuth";
 import { HttpError } from "../../middleware/errorHandler";
 import { deleteAssetsByUrls } from "../media/media.service";
+import { QUEST_TYPES } from "../quests/quest-types";
+import { cleanupDanglingChapterRequirements, relinkChapterRequirements } from "../quests/chapters.service";
 
 export const adminRouter = Router();
 
@@ -76,6 +78,47 @@ adminRouter.get("/admin/pins", async (req, res, next) => {
   }
 });
 
+const pinCategorySchema = z.enum(["food", "shop", "attraction", "transport", "lodging", "other"]);
+
+const createPinAdminSchema = z.object({
+  name: z.string().min(1).max(200),
+  category: pinCategorySchema,
+  description: z.string().max(2000).optional(),
+  country: z.string().min(1).max(100),
+  city: z.string().max(100).optional(),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  photoUrls: z.array(z.string().url()).max(6).optional(),
+});
+
+// Admin-only: creates a pin directly from the dashboard, immediately verified.
+adminRouter.post("/admin/pins", requireAdmin, async (req: AdminRequest, res, next) => {
+  try {
+    const body = createPinAdminSchema.parse(req.body);
+    const result = await pool.query(
+      `INSERT INTO verified_pins (name, category, description, country, city, location, submitted_by, approved_by, is_verified, photo_urls)
+       VALUES ($1, $2, $3, $4, $5, ST_MakePoint($7, $6)::geography, $8, $8, TRUE, $9)
+       RETURNING id, name, category, description, country, city,
+                 ST_Y(location::geometry) AS lat, ST_X(location::geometry) AS lng,
+                 is_verified, is_scam_alert, safety_score, is_checkpoint, is_recommended, photo_urls, created_at`,
+      [
+        body.name,
+        body.category,
+        body.description ?? null,
+        body.country,
+        body.city ?? null,
+        body.lat,
+        body.lng,
+        req.userId,
+        body.photoUrls ?? [],
+      ]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
 const updatePinAdminSchema = z.object({
   isVerified: z.boolean().optional(),
   isScamAlert: z.boolean().optional(),
@@ -85,7 +128,11 @@ const updatePinAdminSchema = z.object({
   isRecommended: z.boolean().optional(),
 });
 
-adminRouter.put("/admin/pins/:id", async (req: AdminRequest, res, next) => {
+// Admin-only: creating/editing/deleting pin records directly is restricted
+// to admins to prevent duplicate/spam/false listings — moderators can still
+// view pins and moderate the pin-suggestions queue (reject, or read the
+// list), but the source-of-truth verified_pins table itself is admin-only.
+adminRouter.put("/admin/pins/:id", requireAdmin, async (req: AdminRequest, res, next) => {
   try {
     const pinId = z.string().uuid().parse(req.params.id);
     const body = updatePinAdminSchema.parse(req.body);
@@ -138,13 +185,106 @@ adminRouter.delete("/admin/pins/:id", requireAdmin, async (req, res, next) => {
 });
 
 // ---------------------------------------------------------------------------
+// Pin suggestions moderation queue
+// ---------------------------------------------------------------------------
+
+adminRouter.get("/admin/pin-suggestions", async (req, res, next) => {
+  try {
+    const { status } = z.object({ status: z.enum(["pending", "approved", "rejected"]).optional() }).parse(req.query);
+    const result = await pool.query(
+      `SELECT s.id, s.name, s.category, s.description, s.country, s.city,
+              ST_Y(s.location::geometry) AS lat, ST_X(s.location::geometry) AS lng,
+              s.photo_urls, s.submitted_by, u.display_name AS submitted_by_name,
+              s.status, s.reviewed_by, s.reviewed_at, s.rejection_reason,
+              s.resulting_pin_id, s.created_at
+       FROM pin_suggestions s
+       JOIN users u ON u.id = s.submitted_by
+       WHERE ($1::text IS NULL OR s.status = $1)
+       ORDER BY s.created_at DESC
+       LIMIT 500`,
+      [status ?? null]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Approving a suggestion creates a real, verified pin — same bar as direct
+// pin creation (POST /pins, POST /admin/pins), so this is admin-only even
+// though the rest of the moderation queue only needs moderator.
+adminRouter.put("/admin/pin-suggestions/:id/approve", requireAdmin, async (req: AdminRequest, res, next) => {
+  const client = await pool.connect();
+  try {
+    const suggestionId = z.string().uuid().parse(req.params.id);
+    await client.query("BEGIN");
+
+    // FOR UPDATE + the pending check below guards against a double-approve
+    // race (two admins clicking approve on the same suggestion at once).
+    const suggestion = await client.query("SELECT * FROM pin_suggestions WHERE id = $1 FOR UPDATE", [suggestionId]);
+    if (!suggestion.rowCount) throw new HttpError(404, "Suggestion not found");
+    const s = suggestion.rows[0];
+    if (s.status !== "pending") throw new HttpError(409, "Suggestion already reviewed");
+
+    const pin = await client.query(
+      `INSERT INTO verified_pins (name, category, description, country, city, location, submitted_by, approved_by, is_verified, photo_urls)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE, $9)
+       RETURNING id, name, category, description, country, city,
+                 ST_Y(location::geometry) AS lat, ST_X(location::geometry) AS lng, is_verified, photo_urls`,
+      [s.name, s.category, s.description, s.country, s.city, s.location, s.submitted_by, req.userId, s.photo_urls]
+    );
+
+    await client.query(
+      `UPDATE pin_suggestions
+       SET status = 'approved', reviewed_by = $2, reviewed_at = now(), resulting_pin_id = $3, updated_at = now()
+       WHERE id = $1`,
+      [suggestionId, req.userId, pin.rows[0].id]
+    );
+
+    await client.query("COMMIT");
+    res.json({ suggestion: { id: suggestionId, status: "approved", resultingPinId: pin.rows[0].id }, pin: pin.rows[0] });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
+const rejectSuggestionSchema = z.object({ reason: z.string().max(1000).optional() });
+
+adminRouter.put("/admin/pin-suggestions/:id/reject", async (req: AdminRequest, res, next) => {
+  try {
+    const suggestionId = z.string().uuid().parse(req.params.id);
+    const { reason } = rejectSuggestionSchema.parse(req.body);
+
+    const result = await pool.query(
+      `UPDATE pin_suggestions
+       SET status = 'rejected', reviewed_by = $2, reviewed_at = now(), rejection_reason = $3, updated_at = now()
+       WHERE id = $1 AND status = 'pending'
+       RETURNING id, status, rejection_reason, photo_urls`,
+      [suggestionId, req.userId, reason ?? null]
+    );
+    if (!result.rowCount) throw new HttpError(404, "Suggestion not found or already reviewed");
+
+    const photoUrls: string[] = result.rows[0].photo_urls ?? [];
+    if (photoUrls.length > 0) await deleteAssetsByUrls(photoUrls);
+
+    res.json({ id: result.rows[0].id, status: result.rows[0].status, rejectionReason: result.rows[0].rejection_reason });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Quests management
 // ---------------------------------------------------------------------------
 
 adminRouter.get("/admin/quests", async (_req, res, next) => {
   try {
     const result = await pool.query(
-      `SELECT q.id, q.title, q.description, q.quest_type, q.xp_reward, q.coin_reward,
+      `SELECT q.id, q.title, q.description, q.quest_type, q.category, q.chapter_id, q.chapter_order,
+              q.xp_reward, q.coin_reward,
               q.pin_id, p.name AS pin_name, q.country, q.active_from, q.active_until, q.created_at,
               COALESCE(uq.completed_count, 0) AS completed_count
        FROM quests q
@@ -164,7 +304,10 @@ adminRouter.get("/admin/quests", async (_req, res, next) => {
 const createQuestSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
-  questType: z.enum(["daily", "weekly", "recommended"]).default("daily"),
+  questType: z.enum(QUEST_TYPES).default("daily"),
+  category: z.string().max(50).optional(),
+  chapterId: z.string().uuid().optional(),
+  chapterOrder: z.number().int().min(1).max(1000).optional(),
   xpReward: z.number().int().min(0).max(100_000).default(0),
   coinReward: z.number().int().min(0).max(100_000).default(0),
   pinId: z.string().uuid().optional(),
@@ -172,17 +315,36 @@ const createQuestSchema = z.object({
   activeUntil: z.string().datetime().optional(),
 });
 
+// Setting a quest's pinId is a UX convenience for "this quest requires a
+// check-in at this pin" — it auto-creates/updates/removes a plain
+// source='admin' checkin unlock requirement row so POST /quests/complete's
+// single unlock-evaluator gate covers it, instead of a second parallel
+// pin_id-specific check. Editable/deletable afterward like any other row.
+async function syncCheckinRequirement(questId: string, pinId: string | null) {
+  await pool.query(`DELETE FROM quest_unlock_requirements WHERE quest_id = $1 AND requirement_type = 'checkin'`, [questId]);
+  if (pinId) {
+    await pool.query(
+      `INSERT INTO quest_unlock_requirements (quest_id, requirement_type, required_pin_id, source)
+       VALUES ($1, 'checkin', $2, 'admin')`,
+      [questId, pinId]
+    );
+  }
+}
+
 adminRouter.post("/admin/quests", async (req, res, next) => {
   try {
     const body = createQuestSchema.parse(req.body);
     const result = await pool.query(
-      `INSERT INTO quests (title, description, quest_type, xp_reward, coin_reward, pin_id, country, active_until)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING id, title, description, quest_type, xp_reward, coin_reward, pin_id, country, active_until, created_at`,
+      `INSERT INTO quests (title, description, quest_type, category, chapter_id, chapter_order, xp_reward, coin_reward, pin_id, country, active_until)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING id, title, description, quest_type, category, chapter_id, chapter_order, xp_reward, coin_reward, pin_id, country, active_until, created_at`,
       [
         body.title,
         body.description ?? null,
         body.questType,
+        body.category ?? null,
+        body.chapterId ?? null,
+        body.chapterOrder ?? null,
         body.xpReward,
         body.coinReward,
         body.pinId ?? null,
@@ -190,6 +352,12 @@ adminRouter.post("/admin/quests", async (req, res, next) => {
         body.activeUntil ?? null,
       ]
     );
+    if (body.pinId) {
+      await syncCheckinRequirement(result.rows[0].id, body.pinId);
+    }
+    if (body.chapterId) {
+      await relinkChapterRequirements(body.chapterId);
+    }
     res.status(201).json(result.rows[0]);
   } catch (err) {
     next(err);
@@ -199,7 +367,10 @@ adminRouter.post("/admin/quests", async (req, res, next) => {
 const updateQuestSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).nullable().optional(),
-  questType: z.enum(["daily", "weekly", "recommended"]).optional(),
+  questType: z.enum(QUEST_TYPES).optional(),
+  category: z.string().max(50).nullable().optional(),
+  chapterId: z.string().uuid().nullable().optional(),
+  chapterOrder: z.number().int().min(1).max(1000).nullable().optional(),
   xpReward: z.number().int().min(0).max(100_000).optional(),
   coinReward: z.number().int().min(0).max(100_000).optional(),
   pinId: z.string().uuid().nullable().optional(),
@@ -213,24 +384,36 @@ adminRouter.put("/admin/quests/:id", async (req, res, next) => {
     const body = updateQuestSchema.parse(req.body);
     if (Object.keys(body).length === 0) throw new HttpError(400, "No fields to update");
 
+    const before = await pool.query<{ chapter_id: string | null }>("SELECT chapter_id FROM quests WHERE id = $1", [questId]);
+    const previousChapterId = before.rows[0]?.chapter_id ?? null;
+
     const result = await pool.query(
       `UPDATE quests
        SET title = COALESCE($2, title),
            description = CASE WHEN $3 THEN $4 ELSE description END,
            quest_type = COALESCE($5, quest_type),
-           xp_reward = COALESCE($6, xp_reward),
-           coin_reward = COALESCE($7, coin_reward),
-           pin_id = CASE WHEN $8 THEN $9 ELSE pin_id END,
-           country = CASE WHEN $10 THEN $11 ELSE country END,
-           active_until = CASE WHEN $12 THEN $13 ELSE active_until END
+           category = CASE WHEN $6 THEN $7 ELSE category END,
+           chapter_id = CASE WHEN $8 THEN $9 ELSE chapter_id END,
+           chapter_order = CASE WHEN $10 THEN $11 ELSE chapter_order END,
+           xp_reward = COALESCE($12, xp_reward),
+           coin_reward = COALESCE($13, coin_reward),
+           pin_id = CASE WHEN $14 THEN $15 ELSE pin_id END,
+           country = CASE WHEN $16 THEN $17 ELSE country END,
+           active_until = CASE WHEN $18 THEN $19 ELSE active_until END
        WHERE id = $1
-       RETURNING id, title, description, quest_type, xp_reward, coin_reward, pin_id, country, active_until`,
+       RETURNING id, title, description, quest_type, category, chapter_id, chapter_order, xp_reward, coin_reward, pin_id, country, active_until`,
       [
         questId,
         body.title ?? null,
         "description" in body,
         body.description ?? null,
         body.questType ?? null,
+        "category" in body,
+        body.category ?? null,
+        "chapterId" in body,
+        body.chapterId ?? null,
+        "chapterOrder" in body,
+        body.chapterOrder ?? null,
         body.xpReward ?? null,
         body.coinReward ?? null,
         "pinId" in body,
@@ -242,6 +425,22 @@ adminRouter.put("/admin/quests/:id", async (req, res, next) => {
       ]
     );
     if (!result.rowCount) throw new HttpError(404, "Quest not found");
+    if ("pinId" in body) {
+      await syncCheckinRequirement(questId, result.rows[0].pin_id);
+    }
+    const newChapterId = result.rows[0].chapter_id as string | null;
+    if (("chapterId" in body || "chapterOrder" in body) && (previousChapterId || newChapterId)) {
+      // Relink whichever chapter(s) actually changed — a quest moving
+      // between chapters needs both the old chapter (to close the gap it
+      // left behind) and the new one (to insert it into the sequence)
+      // recomputed.
+      if (previousChapterId && previousChapterId !== newChapterId) {
+        await relinkChapterRequirements(previousChapterId);
+      }
+      if (newChapterId) {
+        await relinkChapterRequirements(newChapterId);
+      }
+    }
     res.json(result.rows[0]);
   } catch (err) {
     next(err);
@@ -251,9 +450,360 @@ adminRouter.put("/admin/quests/:id", async (req, res, next) => {
 adminRouter.delete("/admin/quests/:id", requireAdmin, async (req, res, next) => {
   try {
     const questId = z.string().uuid().parse(req.params.id);
+    const before = await pool.query<{ chapter_id: string | null }>("SELECT chapter_id FROM quests WHERE id = $1", [questId]);
+    const chapterId = before.rows[0]?.chapter_id ?? null;
+
     const result = await pool.query("DELETE FROM quests WHERE id = $1", [questId]);
     if (!result.rowCount) throw new HttpError(404, "Quest not found");
+
+    if (chapterId) {
+      await relinkChapterRequirements(chapterId);
+    }
     res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Quest unlock requirements — admin-editable gating rules for a quest.
+// Rows with source='chapter_auto' (Phase 3's chapter sequencing) aren't
+// created here, but they're readable/deletable through these same routes
+// like any other row — deleting one just re-locks that link until the
+// chapter's relink logic recreates it.
+// ---------------------------------------------------------------------------
+
+adminRouter.get("/admin/quests/:id/unlock-requirements", async (req, res, next) => {
+  try {
+    const questId = z.string().uuid().parse(req.params.id);
+    const result = await pool.query(
+      `SELECT id, quest_id, requirement_type, min_level, required_quest_id, required_pin_id,
+              category, country, city, count_threshold, source, created_at
+       FROM quest_unlock_requirements
+       WHERE quest_id = $1
+       ORDER BY created_at ASC`,
+      [questId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+const createUnlockRequirementSchema = z.object({
+  requirementType: z.enum(["level", "quest", "checkin", "category", "location"]),
+  minLevel: z.number().int().min(1).max(1000).optional(),
+  requiredQuestId: z.string().uuid().optional(),
+  requiredPinId: z.string().uuid().optional(),
+  category: z.string().max(50).optional(),
+  country: z.string().max(100).optional(),
+  city: z.string().max(100).optional(),
+  countThreshold: z.number().int().min(1).max(100_000).optional(),
+});
+
+adminRouter.post("/admin/quests/:id/unlock-requirements", async (req, res, next) => {
+  try {
+    const questId = z.string().uuid().parse(req.params.id);
+    const body = createUnlockRequirementSchema.parse(req.body);
+    const questExists = await pool.query("SELECT id FROM quests WHERE id = $1", [questId]);
+    if (!questExists.rowCount) throw new HttpError(404, "Quest not found");
+
+    const result = await pool.query(
+      `INSERT INTO quest_unlock_requirements
+         (quest_id, requirement_type, min_level, required_quest_id, required_pin_id, category, country, city, count_threshold, source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'admin')
+       RETURNING id, quest_id, requirement_type, min_level, required_quest_id, required_pin_id,
+                 category, country, city, count_threshold, source, created_at`,
+      [
+        questId,
+        body.requirementType,
+        body.minLevel ?? null,
+        body.requiredQuestId ?? null,
+        body.requiredPinId ?? null,
+        body.category ?? null,
+        body.country ?? null,
+        body.city ?? null,
+        body.countThreshold ?? null,
+      ]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete("/admin/quests/:id/unlock-requirements/:requirementId", requireAdmin, async (req, res, next) => {
+  try {
+    const questId = z.string().uuid().parse(req.params.id);
+    const requirementId = z.string().uuid().parse(req.params.requirementId);
+    const result = await pool.query(
+      "DELETE FROM quest_unlock_requirements WHERE id = $1 AND quest_id = $2",
+      [requirementId, questId]
+    );
+    if (!result.rowCount) throw new HttpError(404, "Unlock requirement not found");
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Story chapters
+// ---------------------------------------------------------------------------
+
+adminRouter.get("/admin/quest-chapters", async (_req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT c.id, c.title, c.description, c.order_index, c.created_at, c.updated_at,
+              COUNT(q.id)::int AS quest_count
+       FROM quest_chapters c
+       LEFT JOIN quests q ON q.chapter_id = c.id
+       GROUP BY c.id
+       ORDER BY c.order_index ASC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+const createChapterSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  orderIndex: z.number().int().min(1).max(100_000),
+});
+
+adminRouter.post("/admin/quest-chapters", async (req, res, next) => {
+  try {
+    const body = createChapterSchema.parse(req.body);
+    const result = await pool.query(
+      `INSERT INTO quest_chapters (title, description, order_index)
+       VALUES ($1, $2, $3)
+       RETURNING id, title, description, order_index, created_at, updated_at`,
+      [body.title, body.description ?? null, body.orderIndex]
+    );
+    res.status(201).json({ ...result.rows[0], quest_count: 0 });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const updateChapterSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(2000).nullable().optional(),
+  orderIndex: z.number().int().min(1).max(100_000).optional(),
+});
+
+adminRouter.put("/admin/quest-chapters/:id", async (req, res, next) => {
+  try {
+    const chapterId = z.string().uuid().parse(req.params.id);
+    const body = updateChapterSchema.parse(req.body);
+    if (Object.keys(body).length === 0) throw new HttpError(400, "No fields to update");
+
+    const result = await pool.query(
+      `UPDATE quest_chapters
+       SET title = COALESCE($2, title),
+           description = CASE WHEN $3 THEN $4 ELSE description END,
+           order_index = COALESCE($5, order_index),
+           updated_at = now()
+       WHERE id = $1
+       RETURNING id, title, description, order_index, created_at, updated_at`,
+      [chapterId, body.title ?? null, "description" in body, body.description ?? null, body.orderIndex ?? null]
+    );
+    if (!result.rowCount) throw new HttpError(404, "Chapter not found");
+
+    // Reordering a chapter can change which chapter precedes/follows it, so
+    // its own auto-chained gate (and its neighbors') needs recomputing.
+    if ("orderIndex" in body) {
+      await relinkChapterRequirements(chapterId);
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Deleting a chapter orphans its quests (ON DELETE SET NULL) rather than
+// blocking deletion or cascading — they keep their completion history, they
+// just lose chapter grouping/gating. Their chapter_auto requirement rows
+// (which pointed into/out of this chapter) are cleaned up so a deleted
+// chapter doesn't leave phantom gates behind.
+adminRouter.delete("/admin/quest-chapters/:id", requireAdmin, async (req, res, next) => {
+  try {
+    const chapterId = z.string().uuid().parse(req.params.id);
+    const questsInChapter = await pool.query<{ id: string }>("SELECT id FROM quests WHERE chapter_id = $1", [chapterId]);
+
+    const result = await pool.query("DELETE FROM quest_chapters WHERE id = $1", [chapterId]);
+    if (!result.rowCount) throw new HttpError(404, "Chapter not found");
+
+    await cleanupDanglingChapterRequirements(questsInChapter.rows.map((q) => q.id));
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Achievements
+// ---------------------------------------------------------------------------
+
+const ACHIEVEMENT_CRITERIA_TYPES = [
+  "quests_completed",
+  "checkins",
+  "level_reached",
+  "category_visits",
+  "chapter_completed",
+  "manual",
+] as const;
+
+adminRouter.get("/admin/achievements", async (_req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, title, description, icon_url, criteria_type, criteria_category, criteria_chapter_id,
+              count_threshold, xp_reward, coin_reward, is_active, created_at, updated_at
+       FROM achievements
+       ORDER BY created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+const createAchievementSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  iconUrl: z.string().url().optional(),
+  criteriaType: z.enum(ACHIEVEMENT_CRITERIA_TYPES),
+  criteriaCategory: z.string().max(50).optional(),
+  criteriaChapterId: z.string().uuid().optional(),
+  countThreshold: z.number().int().min(1).max(1_000_000).optional(),
+  xpReward: z.number().int().min(0).max(100_000).default(0),
+  coinReward: z.number().int().min(0).max(100_000).default(0),
+  isActive: z.boolean().default(true),
+});
+
+adminRouter.post("/admin/achievements", async (req, res, next) => {
+  try {
+    const body = createAchievementSchema.parse(req.body);
+    const result = await pool.query(
+      `INSERT INTO achievements
+         (title, description, icon_url, criteria_type, criteria_category, criteria_chapter_id, count_threshold, xp_reward, coin_reward, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id, title, description, icon_url, criteria_type, criteria_category, criteria_chapter_id,
+                 count_threshold, xp_reward, coin_reward, is_active, created_at, updated_at`,
+      [
+        body.title,
+        body.description ?? null,
+        body.iconUrl ?? null,
+        body.criteriaType,
+        body.criteriaCategory ?? null,
+        body.criteriaChapterId ?? null,
+        body.countThreshold ?? null,
+        body.xpReward,
+        body.coinReward,
+        body.isActive,
+      ]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+const updateAchievementSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(2000).nullable().optional(),
+  iconUrl: z.string().url().nullable().optional(),
+  criteriaType: z.enum(ACHIEVEMENT_CRITERIA_TYPES).optional(),
+  criteriaCategory: z.string().max(50).nullable().optional(),
+  criteriaChapterId: z.string().uuid().nullable().optional(),
+  countThreshold: z.number().int().min(1).max(1_000_000).nullable().optional(),
+  xpReward: z.number().int().min(0).max(100_000).optional(),
+  coinReward: z.number().int().min(0).max(100_000).optional(),
+  isActive: z.boolean().optional(),
+});
+
+adminRouter.put("/admin/achievements/:id", async (req, res, next) => {
+  try {
+    const achievementId = z.string().uuid().parse(req.params.id);
+    const body = updateAchievementSchema.parse(req.body);
+    if (Object.keys(body).length === 0) throw new HttpError(400, "No fields to update");
+
+    const result = await pool.query(
+      `UPDATE achievements
+       SET title = COALESCE($2, title),
+           description = CASE WHEN $3 THEN $4 ELSE description END,
+           icon_url = CASE WHEN $5 THEN $6 ELSE icon_url END,
+           criteria_type = COALESCE($7, criteria_type),
+           criteria_category = CASE WHEN $8 THEN $9 ELSE criteria_category END,
+           criteria_chapter_id = CASE WHEN $10 THEN $11 ELSE criteria_chapter_id END,
+           count_threshold = CASE WHEN $12 THEN $13 ELSE count_threshold END,
+           xp_reward = COALESCE($14, xp_reward),
+           coin_reward = COALESCE($15, coin_reward),
+           is_active = COALESCE($16, is_active),
+           updated_at = now()
+       WHERE id = $1
+       RETURNING id, title, description, icon_url, criteria_type, criteria_category, criteria_chapter_id,
+                 count_threshold, xp_reward, coin_reward, is_active, created_at, updated_at`,
+      [
+        achievementId,
+        body.title ?? null,
+        "description" in body,
+        body.description ?? null,
+        "iconUrl" in body,
+        body.iconUrl ?? null,
+        body.criteriaType ?? null,
+        "criteriaCategory" in body,
+        body.criteriaCategory ?? null,
+        "criteriaChapterId" in body,
+        body.criteriaChapterId ?? null,
+        "countThreshold" in body,
+        body.countThreshold ?? null,
+        body.xpReward ?? null,
+        body.coinReward ?? null,
+        body.isActive ?? null,
+      ]
+    );
+    if (!result.rowCount) throw new HttpError(404, "Achievement not found");
+    res.json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete("/admin/achievements/:id", requireAdmin, async (req, res, next) => {
+  try {
+    const achievementId = z.string().uuid().parse(req.params.id);
+    const result = await pool.query("DELETE FROM achievements WHERE id = $1", [achievementId]);
+    if (!result.rowCount) throw new HttpError(404, "Achievement not found");
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin-only manual override — bypasses criteria evaluation entirely and
+// grants any achievement (including 'manual'-type ones, which have no other
+// path to being unlocked) directly to a user.
+adminRouter.post("/admin/achievements/:id/grant", requireAdmin, async (req, res, next) => {
+  try {
+    const achievementId = z.string().uuid().parse(req.params.id);
+    const { userId } = z.object({ userId: z.string().uuid() }).parse(req.body);
+
+    const achievement = await pool.query("SELECT id FROM achievements WHERE id = $1", [achievementId]);
+    if (!achievement.rowCount) throw new HttpError(404, "Achievement not found");
+    const user = await pool.query("SELECT id FROM users WHERE id = $1", [userId]);
+    if (!user.rowCount) throw new HttpError(404, "User not found");
+
+    const result = await pool.query(
+      `INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, $2)
+       ON CONFLICT DO NOTHING
+       RETURNING id, user_id, achievement_id, unlocked_at`,
+      [userId, achievementId]
+    );
+    if (!result.rowCount) throw new HttpError(409, "User already has this achievement");
+    res.status(201).json(result.rows[0]);
   } catch (err) {
     next(err);
   }

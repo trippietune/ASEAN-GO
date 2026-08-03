@@ -11,3 +11,9 @@ export function xpIntoCurrentLevel(xp: number): number {
 export function xpToNextLevel(xp: number): number {
   return XP_PER_LEVEL - xpIntoCurrentLevel(xp);
 }
+
+export function didLevelUp(previousXp: number, newXp: number) {
+  const previousLevel = levelForXp(previousXp);
+  const newLevel = levelForXp(newXp);
+  return { leveledUp: newLevel > previousLevel, previousLevel, newLevel };
+}

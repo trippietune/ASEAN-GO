@@ -13,10 +13,14 @@ class LevelBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.pink,
+        gradient: AppColors.xpBarGradient(level),
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(color: AppColors.pinkDark.withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 3)),
+          BoxShadow(
+            color: AppColors.xpTierAccentColor(level).withValues(alpha: 0.35),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       alignment: Alignment.center,

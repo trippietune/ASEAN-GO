@@ -128,6 +128,30 @@ abstract class AppLocalizations {
   /// **'กรุณากรอกชื่อนะ'**
   String get displayNameValidator;
 
+  /// Username field label
+  ///
+  /// In th, this message translates to:
+  /// **'ชื่อผู้ใช้'**
+  String get usernameLabel;
+
+  /// Validation error for invalid username format/length
+  ///
+  /// In th, this message translates to:
+  /// **'ชื่อผู้ใช้ต้องมี 3-30 ตัวอักษร (ใช้ได้แค่ตัวอักษร ตัวเลข และขีดล่าง)'**
+  String get usernameValidator;
+
+  /// Login screen combined username-or-email field label
+  ///
+  /// In th, this message translates to:
+  /// **'ชื่อผู้ใช้หรืออีเมล'**
+  String get usernameOrEmailLabel;
+
+  /// Validation error when the login identifier field is empty
+  ///
+  /// In th, this message translates to:
+  /// **'กรุณากรอกชื่อผู้ใช้หรืออีเมล'**
+  String get usernameOrEmailRequiredValidator;
+
   /// Email field label
   ///
   /// In th, this message translates to:
@@ -848,6 +872,30 @@ abstract class AppLocalizations {
   /// **'เช็คอินไม่สำเร็จ ลองอีกครั้งนะ'**
   String get pinDetailCheckInError;
 
+  /// Snackbar shown after favoriting a pin
+  ///
+  /// In th, this message translates to:
+  /// **'บันทึกเป็นรายการโปรดแล้ว'**
+  String get pinDetailFavoriteAdded;
+
+  /// Snackbar shown after unfavoriting a pin
+  ///
+  /// In th, this message translates to:
+  /// **'ลบออกจากรายการโปรดแล้ว'**
+  String get pinDetailFavoriteRemoved;
+
+  /// Snackbar shown when favoriting/unfavoriting fails
+  ///
+  /// In th, this message translates to:
+  /// **'อัปเดตรายการโปรดไม่สำเร็จ ลองอีกครั้งนะ'**
+  String get pinDetailFavoriteError;
+
+  /// Pin detail screen button to add this pin to the user's schedule
+  ///
+  /// In th, this message translates to:
+  /// **'เพิ่มลงตารางเที่ยว'**
+  String get pinDetailAddToScheduleButton;
+
   /// Snackbar placeholder shown when tapping Navigate (feature not implemented)
   ///
   /// In th, this message translates to:
@@ -1001,7 +1049,7 @@ abstract class AppLocalizations {
   /// Submit pin screen app bar title
   ///
   /// In th, this message translates to:
-  /// **'เพิ่มจุดใหม่'**
+  /// **'แนะนำสถานที่ใหม่'**
   String get submitPinTitle;
 
   /// Hint overlay on the draggable map for placing a new pin
@@ -1049,7 +1097,7 @@ abstract class AppLocalizations {
   /// Submit button label on submit pin screen
   ///
   /// In th, this message translates to:
-  /// **'ส่งจุดนี้'**
+  /// **'ส่งคำแนะนำ'**
   String get submitPinSubmitButton;
 
   /// Snackbar shown after successfully submitting a new pin
@@ -1249,6 +1297,78 @@ abstract class AppLocalizations {
   /// In th, this message translates to:
   /// **'ของสะสมของฉัน'**
   String get profileMyCollectionsTitle;
+
+  /// Profile screen list tile label linking to the favorites screen
+  ///
+  /// In th, this message translates to:
+  /// **'รายการโปรด'**
+  String get profileFavoritesLabel;
+
+  /// Favorites screen app bar title
+  ///
+  /// In th, this message translates to:
+  /// **'รายการโปรด'**
+  String get favoritesScreenTitle;
+
+  /// Empty state message when the user has no favorited pins
+  ///
+  /// In th, this message translates to:
+  /// **'ยังไม่มีรายการโปรด กดรูปหัวใจที่หมุดเพื่อบันทึกไว้ที่นี่'**
+  String get favoritesEmptyState;
+
+  /// Schedule tab/screen title
+  ///
+  /// In th, this message translates to:
+  /// **'ตารางเที่ยว'**
+  String get scheduleScreenTitle;
+
+  /// Empty state message when there are no schedule items for the selected date
+  ///
+  /// In th, this message translates to:
+  /// **'ยังไม่มีแผนสำหรับวันนี้'**
+  String get scheduleEmptyState;
+
+  /// Button label for adding a place to the schedule
+  ///
+  /// In th, this message translates to:
+  /// **'เพิ่มลงตารางเที่ยว'**
+  String get scheduleAddButton;
+
+  /// Label next to the date picker row on the Schedule screen
+  ///
+  /// In th, this message translates to:
+  /// **'เปลี่ยนวันที่'**
+  String get scheduleDatePickerLabel;
+
+  /// Snackbar shown after successfully adding a place to the schedule
+  ///
+  /// In th, this message translates to:
+  /// **'เพิ่มลงตารางเที่ยวแล้ว'**
+  String get scheduleItemAdded;
+
+  /// Snackbar shown when adding to the schedule fails
+  ///
+  /// In th, this message translates to:
+  /// **'เพิ่มลงตารางเที่ยวไม่สำเร็จ ลองอีกครั้งนะ'**
+  String get scheduleItemAddError;
+
+  /// Snackbar shown when the pin is already scheduled for that date (409)
+  ///
+  /// In th, this message translates to:
+  /// **'สถานที่นี้อยู่ในตารางเที่ยววันนั้นแล้ว'**
+  String get scheduleItemDuplicateError;
+
+  /// Snackbar shown after removing a schedule item
+  ///
+  /// In th, this message translates to:
+  /// **'ลบออกจากตารางเที่ยวแล้ว'**
+  String get scheduleItemRemoved;
+
+  /// Confirmation dialog message before deleting a schedule item
+  ///
+  /// In th, this message translates to:
+  /// **'ลบสถานที่นี้ออกจากตารางเที่ยวไหม?'**
+  String get scheduleItemDeleteConfirm;
 
   /// Profile screen list tile label linking to the store
   ///
@@ -1861,6 +1981,108 @@ abstract class AppLocalizations {
   /// In th, this message translates to:
   /// **'ทำต่ออีกนิดนะ สู้ๆ'**
   String get questsKeepGoingBanner;
+
+  /// Section header label for daily-type quests
+  ///
+  /// In th, this message translates to:
+  /// **'รายวัน'**
+  String get questTypeDaily;
+
+  /// Section header label for location-type quests
+  ///
+  /// In th, this message translates to:
+  /// **'สถานที่'**
+  String get questTypeLocation;
+
+  /// Section header label for category-type quests
+  ///
+  /// In th, this message translates to:
+  /// **'หมวดหมู่'**
+  String get questTypeCategory;
+
+  /// Section header label for level-type quests
+  ///
+  /// In th, this message translates to:
+  /// **'เลเวล'**
+  String get questTypeLevel;
+
+  /// Section header label for story-type quests
+  ///
+  /// In th, this message translates to:
+  /// **'เนื้อเรื่อง'**
+  String get questTypeStory;
+
+  /// Badge text on a locked quest card
+  ///
+  /// In th, this message translates to:
+  /// **'ล็อคอยู่'**
+  String get questLockedLabel;
+
+  /// Toast shown after completing a quest that also unlocked an achievement
+  ///
+  /// In th, this message translates to:
+  /// **'ปลดล็อค Achievement: {title}'**
+  String questUnlockAchievementToast(String title);
+
+  /// Achievements screen app bar title
+  ///
+  /// In th, this message translates to:
+  /// **'Achievements'**
+  String get achievementsScreenTitle;
+
+  /// Error message shown when achievements fail to load
+  ///
+  /// In th, this message translates to:
+  /// **'โหลด Achievements ไม่สำเร็จ ลองใหม่อีกครั้ง\n{error}'**
+  String achievementsLoadError(String error);
+
+  /// Empty state message on achievements screen
+  ///
+  /// In th, this message translates to:
+  /// **'ยังไม่มี Achievement'**
+  String get achievementsEmptyState;
+
+  /// Badge text on a locked achievement card
+  ///
+  /// In th, this message translates to:
+  /// **'ล็อคอยู่'**
+  String get achievementLockedLabel;
+
+  /// Badge text on an unlocked achievement card
+  ///
+  /// In th, this message translates to:
+  /// **'ปลดล็อคแล้ว'**
+  String get achievementUnlockedLabel;
+
+  /// Label on the Profile screen entry point linking to the Achievements screen
+  ///
+  /// In th, this message translates to:
+  /// **'Achievements'**
+  String get profileAchievementsLabel;
+
+  /// Level-up modal title
+  ///
+  /// In th, this message translates to:
+  /// **'เลเวลอัพ!'**
+  String get levelUpTitle;
+
+  /// Level-up modal body showing the new level reached
+  ///
+  /// In th, this message translates to:
+  /// **'คุณถึงเลเวล {level} แล้ว'**
+  String levelUpBody(Object level);
+
+  /// Level-up modal flourish line shown when a level-skip fired
+  ///
+  /// In th, this message translates to:
+  /// **'คุณข้ามไป {count} เลเวล!'**
+  String levelUpSkippedLevels(Object count);
+
+  /// Level-up modal dismiss/continue button label
+  ///
+  /// In th, this message translates to:
+  /// **'เยี่ยมมาก!'**
+  String get levelUpContinueButton;
 }
 
 class _AppLocalizationsDelegate

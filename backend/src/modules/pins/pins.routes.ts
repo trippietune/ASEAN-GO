@@ -2,8 +2,12 @@ import { Router } from "express";
 import { z } from "zod";
 import { pool } from "../../db/pool";
 import { requireAuth, AuthedRequest } from "../../middleware/auth";
+import { optionalAuth } from "../../middleware/optionalAuth";
+import { requireAdmin } from "../../middleware/adminAuth";
 import { HttpError } from "../../middleware/errorHandler";
 import { deleteAssetsByUrls } from "../media/media.service";
+import { creditXpAndCoins } from "../users/rewards.service";
+import { evaluateAchievements } from "../achievements/achievements.service";
 
 const CHECKIN_XP_REWARD = 15;
 
@@ -20,7 +24,8 @@ const nearbyQuerySchema = z.object({
 
 // GET /pins/nearby?lat=..&lng=..&radiusMeters=..
 // Returns Verified Pins and active Scam Alerts within range, closest first.
-pinsRouter.get("/nearby", async (req, res, next) => {
+// optionalAuth: anonymous callers still get results, just without is_favorited.
+pinsRouter.get("/nearby", optionalAuth, async (req: AuthedRequest, res, next) => {
   try {
     const { lat, lng, radiusMeters, category } = nearbyQuerySchema.parse(req.query);
 
@@ -33,7 +38,8 @@ pinsRouter.get("/nearby", async (req, res, next) => {
               COALESCE(r.average_rating, 0) AS average_rating,
               COALESCE(r.review_count, 0) AS review_count,
               COALESCE(rr.report_count, 0) AS report_count,
-              COALESCE(aq.has_active_quest, FALSE) AS has_active_quest
+              COALESCE(aq.has_active_quest, FALSE) AS has_active_quest,
+              (fav.id IS NOT NULL) AS is_favorited
        FROM verified_pins p
        LEFT JOIN (
          SELECT pin_id, AVG(rating)::float AS average_rating, COUNT(*)::int AS review_count
@@ -46,11 +52,12 @@ pinsRouter.get("/nearby", async (req, res, next) => {
          SELECT DISTINCT pin_id, TRUE AS has_active_quest FROM quests
          WHERE pin_id IS NOT NULL AND active_from <= now() AND (active_until IS NULL OR active_until > now())
        ) aq ON aq.pin_id = p.id
+       LEFT JOIN user_favorite_pins fav ON fav.pin_id = p.id AND fav.user_id = $5
        WHERE ST_DWithin(p.location, ST_MakePoint($2, $1)::geography, $3)
          AND ($4::text IS NULL OR p.category = $4)
        ORDER BY distance_meters ASC
        LIMIT 200`,
-      [lat, lng, radiusMeters, category ?? null]
+      [lat, lng, radiusMeters, category ?? null, req.userId ?? null]
     );
 
     res.json(result.rows);
@@ -108,13 +115,15 @@ const createPinSchema = z.object({
   photoUrls: z.array(z.string().url()).max(6).optional(),
 });
 
-// Authenticated users can submit a pin candidate; it starts unverified pending admin review.
-pinsRouter.post("/", requireAuth, async (req: AuthedRequest, res, next) => {
+// Admin-only: creates a pin that's immediately verified — the creator IS the
+// approver, so there's no separate review step the way there is for a
+// regular user's suggestion (see POST /pin-suggestions).
+pinsRouter.post("/", requireAuth, requireAdmin, async (req: AuthedRequest, res, next) => {
   try {
     const body = createPinSchema.parse(req.body);
     const result = await pool.query(
-      `INSERT INTO verified_pins (name, category, description, country, city, location, submitted_by, photo_urls)
-       VALUES ($1, $2, $3, $4, $5, ST_MakePoint($7, $6)::geography, $8, $9)
+      `INSERT INTO verified_pins (name, category, description, country, city, location, submitted_by, approved_by, is_verified, photo_urls)
+       VALUES ($1, $2, $3, $4, $5, ST_MakePoint($7, $6)::geography, $8, $8, TRUE, $9)
        RETURNING id, name, category, description, country, city,
                  ST_Y(location::geometry) AS lat, ST_X(location::geometry) AS lng,
                  is_verified, is_scam_alert, scam_alert_message, safety_score, photo_urls,
@@ -137,8 +146,66 @@ pinsRouter.post("/", requireAuth, async (req: AuthedRequest, res, next) => {
   }
 });
 
+// GET /pins/favorites — the calling user's favorited pins, most recent first.
+// Must be declared before GET /:id, or Express routes "favorites" into the
+// :id param and it fails UUID validation.
+pinsRouter.get("/favorites", requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT p.id, p.name, p.category, p.description, p.country, p.city,
+              ST_Y(p.location::geometry) AS lat, ST_X(p.location::geometry) AS lng,
+              p.is_verified, p.is_scam_alert, p.scam_alert_message, p.safety_score,
+              p.is_checkpoint, p.is_recommended,
+              COALESCE(r.average_rating, 0) AS average_rating,
+              COALESCE(r.review_count, 0) AS review_count,
+              TRUE AS is_favorited
+       FROM user_favorite_pins fav
+       JOIN verified_pins p ON p.id = fav.pin_id
+       LEFT JOIN (
+         SELECT pin_id, AVG(rating)::float AS average_rating, COUNT(*)::int AS review_count
+         FROM reviews GROUP BY pin_id
+       ) r ON r.pin_id = p.id
+       WHERE fav.user_id = $1
+       ORDER BY fav.created_at DESC`,
+      [req.userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /pins/:id/favorite — idempotent; favoriting an already-favorited pin is a no-op.
+pinsRouter.post("/:id/favorite", requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const pinId = z.string().uuid().parse(req.params.id);
+    const pin = await pool.query("SELECT id FROM verified_pins WHERE id = $1", [pinId]);
+    if (!pin.rowCount) throw new HttpError(404, "Pin not found");
+
+    await pool.query(
+      `INSERT INTO user_favorite_pins (user_id, pin_id) VALUES ($1, $2)
+       ON CONFLICT (user_id, pin_id) DO NOTHING`,
+      [req.userId, pinId]
+    );
+    res.json({ isFavorited: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /pins/:id/favorite — idempotent; safe to call even if never favorited.
+pinsRouter.delete("/:id/favorite", requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const pinId = z.string().uuid().parse(req.params.id);
+    await pool.query("DELETE FROM user_favorite_pins WHERE user_id = $1 AND pin_id = $2", [req.userId, pinId]);
+    res.json({ isFavorited: false });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /pins/:id — full detail for a single pin.
-pinsRouter.get("/:id", async (req, res, next) => {
+pinsRouter.get("/:id", optionalAuth, async (req: AuthedRequest, res, next) => {
   try {
     const pinId = z.string().uuid().parse(req.params.id);
     const result = await pool.query(
@@ -150,7 +217,8 @@ pinsRouter.get("/:id", async (req, res, next) => {
               COALESCE(r.average_rating, 0) AS average_rating,
               COALESCE(r.review_count, 0) AS review_count,
               COALESCE(rr.report_count, 0) AS report_count,
-              COALESCE(aq.has_active_quest, FALSE) AS has_active_quest
+              COALESCE(aq.has_active_quest, FALSE) AS has_active_quest,
+              (fav.id IS NOT NULL) AS is_favorited
        FROM verified_pins p
        LEFT JOIN (
          SELECT pin_id, AVG(rating)::float AS average_rating, COUNT(*)::int AS review_count
@@ -163,8 +231,9 @@ pinsRouter.get("/:id", async (req, res, next) => {
          SELECT DISTINCT pin_id, TRUE AS has_active_quest FROM quests
          WHERE pin_id IS NOT NULL AND active_from <= now() AND (active_until IS NULL OR active_until > now())
        ) aq ON aq.pin_id = p.id
+       LEFT JOIN user_favorite_pins fav ON fav.pin_id = p.id AND fav.user_id = $2
        WHERE p.id = $1`,
-      [pinId]
+      [pinId, req.userId ?? null]
     );
     if (!result.rowCount) throw new HttpError(404, "Pin not found");
     res.json(result.rows[0]);
@@ -184,8 +253,8 @@ const updatePinSchema = z.object({
   photoUrls: z.array(z.string().url()).max(6).optional(),
 });
 
-// PUT /pins/:id — only the original submitter may edit their pin.
-pinsRouter.put("/:id", requireAuth, async (req: AuthedRequest, res, next) => {
+// PUT /pins/:id — admin-only.
+pinsRouter.put("/:id", requireAuth, requireAdmin, async (req: AuthedRequest, res, next) => {
   try {
     const pinId = z.string().uuid().parse(req.params.id);
     const body = updatePinSchema.parse(req.body);
@@ -193,11 +262,8 @@ pinsRouter.put("/:id", requireAuth, async (req: AuthedRequest, res, next) => {
       throw new HttpError(400, "No fields to update");
     }
 
-    const existing = await pool.query("SELECT submitted_by, photo_urls FROM verified_pins WHERE id = $1", [pinId]);
+    const existing = await pool.query("SELECT photo_urls FROM verified_pins WHERE id = $1", [pinId]);
     if (!existing.rowCount) throw new HttpError(404, "Pin not found");
-    if (existing.rows[0].submitted_by !== req.userId) {
-      throw new HttpError(403, "You can only edit pins you submitted");
-    }
 
     const hasLocation = body.lat !== undefined && body.lng !== undefined;
     const result = await pool.query(
@@ -244,16 +310,13 @@ pinsRouter.put("/:id", requireAuth, async (req: AuthedRequest, res, next) => {
   }
 });
 
-// DELETE /pins/:id — only the original submitter may delete their pin.
-pinsRouter.delete("/:id", requireAuth, async (req: AuthedRequest, res, next) => {
+// DELETE /pins/:id — admin-only.
+pinsRouter.delete("/:id", requireAuth, requireAdmin, async (req: AuthedRequest, res, next) => {
   try {
     const pinId = z.string().uuid().parse(req.params.id);
 
-    const existing = await pool.query("SELECT submitted_by, photo_urls FROM verified_pins WHERE id = $1", [pinId]);
+    const existing = await pool.query("SELECT photo_urls FROM verified_pins WHERE id = $1", [pinId]);
     if (!existing.rowCount) throw new HttpError(404, "Pin not found");
-    if (existing.rows[0].submitted_by !== req.userId) {
-      throw new HttpError(403, "You can only delete pins you submitted");
-    }
 
     await pool.query("DELETE FROM verified_pins WHERE id = $1", [pinId]);
 
@@ -293,19 +356,18 @@ pinsRouter.post("/:id/checkin", requireAuth, async (req: AuthedRequest, res, nex
       [req.userId, pinId, CHECKIN_XP_REWARD]
     );
 
-    const updated = await client.query(
-      `UPDATE users SET xp = xp + $2, level = FLOOR((xp + $2) / 100) + 1, updated_at = now()
-       WHERE id = $1
-       RETURNING xp, level`,
-      [req.userId, CHECKIN_XP_REWARD]
-    );
+    const credited = await creditXpAndCoins(client, req.userId!, CHECKIN_XP_REWARD, 0, "checkin", pinId);
+    const awardedAchievements = await evaluateAchievements(client, req.userId!);
 
     await client.query("COMMIT");
 
     res.status(201).json({
       xpAwarded: CHECKIN_XP_REWARD,
-      xp: updated.rows[0].xp,
-      level: updated.rows[0].level,
+      xp: credited.xp,
+      level: credited.level,
+      leveledUp: credited.leveledUp,
+      previousLevel: credited.previousLevel,
+      awardedAchievements,
     });
   } catch (err) {
     await client.query("ROLLBACK");

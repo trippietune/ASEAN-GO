@@ -13,6 +13,7 @@ describe("POST /auth/forgot-password", () => {
       email: "resetme@example.com",
       password: "originalpassword",
       displayName: "Reset Me",
+      username: "resetme",
     });
 
     const res = await request(app).post("/auth/forgot-password").send({ email: "resetme@example.com" });
@@ -69,6 +70,7 @@ describe("POST /auth/reset-password", () => {
       email: "fullflow@example.com",
       password: "originalpassword",
       displayName: "Full Flow",
+      username: "fullflow",
     });
     await request(app).post("/auth/forgot-password").send({ email: "fullflow@example.com" });
     const code = sendSpy.mock.calls[0][1];
@@ -80,12 +82,12 @@ describe("POST /auth/reset-password", () => {
 
     const oldPasswordLogin = await request(app)
       .post("/auth/login")
-      .send({ email: "fullflow@example.com", password: "originalpassword" });
+      .send({ identifier: "fullflow@example.com", password: "originalpassword" });
     expect(oldPasswordLogin.status).toBe(401);
 
     const newPasswordLogin = await request(app)
       .post("/auth/login")
-      .send({ email: "fullflow@example.com", password: "brandnewpassword" });
+      .send({ identifier: "fullflow@example.com", password: "brandnewpassword" });
     expect(newPasswordLogin.status).toBe(200);
 
     sendSpy.mockRestore();
@@ -98,6 +100,7 @@ describe("POST /auth/reset-password", () => {
       email: "reused@example.com",
       password: "originalpassword",
       displayName: "Reused Code",
+      username: "reusedcode",
     });
     await request(app).post("/auth/forgot-password").send({ email: "reused@example.com" });
     const code = sendSpy.mock.calls[0][1];
@@ -143,6 +146,7 @@ describe("POST /auth/reset-password", () => {
       email: "bruteforce@example.com",
       password: "originalpassword",
       displayName: "Brute Force",
+      username: "bruteforce",
     });
     await request(app).post("/auth/forgot-password").send({ email: "bruteforce@example.com" });
     const correctCode = sendSpy.mock.calls[0][1];
@@ -172,6 +176,7 @@ describe("POST /auth/reset-password", () => {
       email: "expired@example.com",
       password: "originalpassword",
       displayName: "Expired Code",
+      username: "expiredcode",
     });
     await request(app).post("/auth/forgot-password").send({ email: "expired@example.com" });
     const code = sendSpy.mock.calls[0][1];
@@ -194,6 +199,7 @@ describe("POST /auth/reset-password", () => {
       email: "multirequest@example.com",
       password: "originalpassword",
       displayName: "Multi Request",
+      username: "multirequest",
     });
     await request(app).post("/auth/forgot-password").send({ email: "multirequest@example.com" });
     const firstCode = sendSpy.mock.calls[0][1];

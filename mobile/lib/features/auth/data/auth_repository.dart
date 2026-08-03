@@ -11,19 +11,23 @@ class AuthRepository {
     required String email,
     required String password,
     required String displayName,
+    required String username,
   }) async {
     final response = await _client.dio.post('/auth/register', data: {
       'email': email,
       'password': password,
       'displayName': displayName,
+      'username': username,
     });
     await _client.saveToken(response.data['token'] as String);
     return AppUser.fromJson(response.data['user'] as Map<String, dynamic>);
   }
 
-  Future<AppUser> login({required String email, required String password}) async {
+  /// [identifier] may be either the account's email or its username — the
+  /// backend tries both in a single query.
+  Future<AppUser> login({required String identifier, required String password}) async {
     final response = await _client.dio.post('/auth/login', data: {
-      'email': email,
+      'identifier': identifier,
       'password': password,
     });
     await _client.saveToken(response.data['token'] as String);

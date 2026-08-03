@@ -10,8 +10,7 @@ import '../data/user_model.dart';
 /// Pulls the backend's `{ error: "..." }` message out of a failed auth call,
 /// falling back to [fallback] for network errors or unexpected shapes — auth
 /// endpoints return specific, user-facing messages (e.g. "Invalid email or
-/// password", "An account with this email already exists") that are more
-/// useful here than a generic string.
+/// password") that are more useful here than a generic string.
 String _authErrorMessage(Object error, String fallback) {
   if (error is DioException) {
     final data = error.response?.data;
@@ -79,10 +78,11 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> login(String email, String password, {required String fallbackError}) async {
+  /// [identifier] may be either the account's email or its username.
+  Future<void> login(String identifier, String password, {required String fallbackError}) async {
     state = const AuthLoading();
     try {
-      final user = await _repository.login(email: email, password: password);
+      final user = await _repository.login(identifier: identifier, password: password);
       state = AuthAuthenticated(user);
       await _socketService.connect();
     } catch (e) {
@@ -93,7 +93,8 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> register(
     String email,
     String password,
-    String displayName, {
+    String displayName,
+    String username, {
     required String fallbackError,
   }) async {
     state = const AuthLoading();
@@ -102,6 +103,7 @@ class AuthController extends StateNotifier<AuthState> {
         email: email,
         password: password,
         displayName: displayName,
+        username: username,
       );
       state = AuthAuthenticated(user);
       await _socketService.connect();

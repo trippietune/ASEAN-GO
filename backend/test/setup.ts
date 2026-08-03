@@ -13,9 +13,13 @@ const TABLES = [
   "reviews",
   "pin_checkins",
   "user_quests",
+  "user_achievements",
+  "achievements",
   "inventory",
   "store_items",
+  "quest_unlock_requirements",
   "quests",
+  "quest_chapters",
   "verified_pins",
   "users",
 ];

@@ -27,10 +27,11 @@ String _transportLabel(AppLocalizations l10n) => l10n.mapCategoryTransport;
 String _lodgingLabel(AppLocalizations l10n) => l10n.mapCategoryLodging;
 String _otherLabel(AppLocalizations l10n) => l10n.mapCategoryOther;
 
-/// Submits a new pin candidate — the pin starts unverified pending admin
-/// review (see backend POST /pins). Location is picked via a center-screen
-/// crosshair over a draggable map, which is simpler and less error-prone on
-/// a phone than long-press placement.
+/// Submits a suggestion for a new place — pin creation itself is admin-only
+/// now, so this goes to an admin review queue instead of creating a pin
+/// directly (see backend POST /pin-suggestions). Location is picked via a
+/// center-screen crosshair over a draggable map, which is simpler and less
+/// error-prone on a phone than long-press placement.
 class SubmitPinScreen extends ConsumerStatefulWidget {
   const SubmitPinScreen({super.key});
 
@@ -77,7 +78,7 @@ class _SubmitPinScreenState extends ConsumerState<SubmitPinScreen> {
 
     setState(() => _isSubmitting = true);
     try {
-      await ref.read(pinsRepositoryProvider).createPin(
+      await ref.read(pinSuggestionsRepositoryProvider).submitSuggestion(
             name: _nameController.text.trim(),
             category: _category,
             country: 'Thailand',
@@ -88,7 +89,6 @@ class _SubmitPinScreenState extends ConsumerState<SubmitPinScreen> {
             photoUrls: _photoUrls,
           );
       if (!mounted) return;
-      ref.invalidate(nearbyPinsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context).submitPinSuccess)),
       );

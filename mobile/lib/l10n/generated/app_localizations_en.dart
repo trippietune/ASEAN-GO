@@ -25,6 +25,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get displayNameValidator => 'Please enter your name';
 
   @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get usernameValidator =>
+      'Username must be 3-30 characters (letters, numbers, underscore only)';
+
+  @override
+  String get usernameOrEmailLabel => 'Username or Email';
+
+  @override
+  String get usernameOrEmailRequiredValidator =>
+      'Please enter your username or email';
+
+  @override
   String get emailLabel => 'Email';
 
   @override
@@ -408,6 +422,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pinDetailCheckInError => 'Check-in failed. Please try again.';
 
   @override
+  String get pinDetailFavoriteAdded => 'Added to favorites';
+
+  @override
+  String get pinDetailFavoriteRemoved => 'Removed from favorites';
+
+  @override
+  String get pinDetailFavoriteError =>
+      'Couldn\'t update favorite. Please try again.';
+
+  @override
+  String get pinDetailAddToScheduleButton => 'Add to Schedule';
+
+  @override
   String get pinDetailNavigatePlaceholder =>
       'Navigating there... (demo only, not yet connected)';
 
@@ -491,7 +518,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get writeReviewSubmit => 'Submit review';
 
   @override
-  String get submitPinTitle => 'Add New Pin';
+  String get submitPinTitle => 'Suggest a New Place';
 
   @override
   String get submitPinDragMapHint => 'Drag the map to place the pin';
@@ -515,7 +542,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get submitPinAttachPhotos => 'Attach photos';
 
   @override
-  String get submitPinSubmitButton => 'Submit pin';
+  String get submitPinSubmitButton => 'Submit suggestion';
 
   @override
   String get submitPinSuccess =>
@@ -627,6 +654,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileMyCollectionsTitle => 'My Collectibles';
+
+  @override
+  String get profileFavoritesLabel => 'Favorites';
+
+  @override
+  String get favoritesScreenTitle => 'Favorites';
+
+  @override
+  String get favoritesEmptyState =>
+      'No favorites yet. Tap the heart on a pin to save it here.';
+
+  @override
+  String get scheduleScreenTitle => 'Schedule';
+
+  @override
+  String get scheduleEmptyState => 'Nothing scheduled for this day yet.';
+
+  @override
+  String get scheduleAddButton => 'Add to Schedule';
+
+  @override
+  String get scheduleDatePickerLabel => 'Change date';
+
+  @override
+  String get scheduleItemAdded => 'Added to your schedule';
+
+  @override
+  String get scheduleItemAddError =>
+      'Couldn\'t add to schedule. Please try again.';
+
+  @override
+  String get scheduleItemDuplicateError =>
+      'This place is already scheduled for that date';
+
+  @override
+  String get scheduleItemRemoved => 'Removed from schedule';
+
+  @override
+  String get scheduleItemDeleteConfirm =>
+      'Remove this place from your schedule?';
 
   @override
   String get profileStoreLabel => 'Store';
@@ -970,4 +1037,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get questsKeepGoingBanner => 'Keep going, you\'ve got this';
+
+  @override
+  String get questTypeDaily => 'Daily';
+
+  @override
+  String get questTypeLocation => 'Location';
+
+  @override
+  String get questTypeCategory => 'Category';
+
+  @override
+  String get questTypeLevel => 'Level';
+
+  @override
+  String get questTypeStory => 'Story';
+
+  @override
+  String get questLockedLabel => 'Locked';
+
+  @override
+  String questUnlockAchievementToast(String title) {
+    return 'Achievement unlocked: $title';
+  }
+
+  @override
+  String get achievementsScreenTitle => 'Achievements';
+
+  @override
+  String achievementsLoadError(String error) {
+    return 'Couldn\'t load achievements. Try again\n$error';
+  }
+
+  @override
+  String get achievementsEmptyState => 'No achievements yet';
+
+  @override
+  String get achievementLockedLabel => 'Locked';
+
+  @override
+  String get achievementUnlockedLabel => 'Unlocked';
+
+  @override
+  String get profileAchievementsLabel => 'Achievements';
+
+  @override
+  String get levelUpTitle => 'Level Up!';
+
+  @override
+  String levelUpBody(Object level) {
+    return 'You reached level $level';
+  }
+
+  @override
+  String levelUpSkippedLevels(Object count) {
+    return 'You skipped $count levels!';
+  }
+
+  @override
+  String get levelUpContinueButton => 'Continue';
 }

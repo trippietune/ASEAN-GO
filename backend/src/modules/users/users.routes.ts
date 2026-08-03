@@ -45,6 +45,33 @@ usersRouter.get("/me/quests", requireAuth, async (req: AuthedRequest, res, next)
   }
 });
 
+// GET /users/me/achievements — every active, non-manual-only-visible
+// achievement (manual ones still show up, they just can't be self-earned),
+// with this user's unlock status. Show-not-hide, matching how locked quests
+// are surfaced (decision carried over from the quest unlock system).
+usersRouter.get("/me/achievements", requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT a.id, a.title, a.description, a.icon_url, a.criteria_type, a.criteria_category,
+              a.count_threshold, a.xp_reward, a.coin_reward,
+              ua.unlocked_at
+       FROM achievements a
+       LEFT JOIN user_achievements ua ON ua.achievement_id = a.id AND ua.user_id = $1
+       WHERE a.is_active = TRUE
+       ORDER BY (ua.unlocked_at IS NULL), ua.unlocked_at DESC, a.created_at ASC`,
+      [req.userId]
+    );
+    res.json(
+      result.rows.map((row) => ({
+        ...row,
+        unlocked: row.unlocked_at !== null,
+      }))
+    );
+  } catch (err) {
+    next(err);
+  }
+});
+
 const updateProfileSchema = z.object({
   displayName: z.string().min(1).max(80).optional(),
   avatarUrl: z.string().url().max(2000).optional(),

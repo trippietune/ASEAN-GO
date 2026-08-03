@@ -3,9 +3,14 @@ import 'package:geolocator/geolocator.dart';
 import '../../../core/api/providers.dart';
 import '../data/pin_model.dart';
 import '../data/pins_repository.dart';
+import '../data/pin_suggestions_repository.dart';
 
 final pinsRepositoryProvider = Provider<PinsRepository>((ref) {
   return PinsRepository(ref.watch(apiClientProvider));
+});
+
+final pinSuggestionsRepositoryProvider = Provider<PinSuggestionsRepository>((ref) {
+  return PinSuggestionsRepository(ref.watch(apiClientProvider));
 });
 
 // Bangkok as a sane fallback center when location permission is unavailable.
@@ -65,4 +70,8 @@ final filteredPinsProvider = Provider.autoDispose<AsyncValue<List<VerifiedPin>>>
   final pinsAsync = ref.watch(nearbyPinsProvider);
   final filter = ref.watch(mapFilterProvider);
   return pinsAsync.whenData((pins) => pins.where((pin) => matchesMapFilter(pin, filter)).toList());
+});
+
+final favoritePinsProvider = FutureProvider.autoDispose<List<VerifiedPin>>((ref) async {
+  return ref.watch(pinsRepositoryProvider).fetchFavorites();
 });

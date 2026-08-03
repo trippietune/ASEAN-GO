@@ -21,9 +21,10 @@ Status snapshot: see the checklist at the bottom for what's done vs. pending.
 
 ## 1. Database (Supabase)
 
-Already provisioned and migrated as of this runbook — all 9 migrations in
-`backend/db/migrations/` have been applied, PostGIS and uuid-ossp extensions
-are enabled.
+Already provisioned and migrated as of this runbook — all 21 migrations in
+`backend/db/migrations/` have been applied (018-021 added the quest-system
+redesign: 5-type taxonomy, story chapters, unlock requirements, achievements),
+PostGIS and uuid-ossp extensions are enabled.
 
 **Important — IPv6 gotcha:** Supabase's direct connection host
 (`db.<ref>.supabase.co`) is IPv6-only on all new projects. Most container
