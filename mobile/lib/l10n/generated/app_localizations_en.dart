@@ -12,6 +12,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTagline => 'Your travel companion who\'s got your back';
 
   @override
+  String get apiSessionExpired =>
+      'Your session has expired. Please log in again';
+
+  @override
+  String get apiConnectionTimeout =>
+      'The connection timed out. Please try again';
+
+  @override
+  String get apiServerUnreachable =>
+      'Couldn\'t reach the server. Please try again later';
+
+  @override
+  String get apiNoInternet =>
+      'No internet connection. Please check your connection';
+
+  @override
+  String get apiServerError => 'Server error. Please try again later';
+
+  @override
+  String get apiGenericError => 'Something went wrong. Please try again';
+
+  @override
+  String get onboardingTitle1 => 'Discover Verified Places';
+
+  @override
+  String get onboardingBody1 =>
+      'Explore a live map of pins checked by fellow travelers, color-coded by safety so you always know where you stand.';
+
+  @override
+  String get onboardingTitle2 => 'Earn XP on Every Trip';
+
+  @override
+  String get onboardingBody2 =>
+      'Complete quests, check in at checkpoints, and level up as you explore new places around ASEAN.';
+
+  @override
+  String get onboardingTitle3 => 'Travel with Confidence';
+
+  @override
+  String get onboardingBody3 =>
+      'Get scam alerts and safety scores before you go, so surprises stay good ones.';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingGetStarted => 'Get Started';
+
+  @override
   String get loginWelcomeTitle => 'Welcome to AseanGo';
 
   @override

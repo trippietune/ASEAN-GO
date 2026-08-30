@@ -4,6 +4,66 @@
   "@appTagline": {
     "description": "Tagline shown under the logo on splash and login"
   },
+  "apiSessionExpired": "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่",
+  "@apiSessionExpired": {
+    "description": "Shown when a 401 response triggers auto-logout"
+  },
+  "apiConnectionTimeout": "การเชื่อมต่อหมดเวลา กรุณาลองใหม่อีกครั้ง",
+  "@apiConnectionTimeout": {
+    "description": "Shown when a request times out"
+  },
+  "apiServerUnreachable": "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่ภายหลัง",
+  "@apiServerUnreachable": {
+    "description": "Shown when there is network connectivity but the backend itself can't be reached"
+  },
+  "apiNoInternet": "ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาตรวจสอบการเชื่อมต่อ",
+  "@apiNoInternet": {
+    "description": "Shown when the device has no network connectivity at all"
+  },
+  "apiServerError": "เซิร์ฟเวอร์ขัดข้อง กรุณาลองใหม่ภายหลัง",
+  "@apiServerError": {
+    "description": "Shown on a 5xx response with no more specific error message"
+  },
+  "apiGenericError": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+  "@apiGenericError": {
+    "description": "Fallback shown for any other API error"
+  },
+  "onboardingTitle1": "ค้นพบสถานที่ที่ยืนยันแล้ว",
+  "@onboardingTitle1": {
+    "description": "Onboarding page 1 title"
+  },
+  "onboardingBody1": "สำรวจแผนที่พินสถานที่จริงจากนักเดินทางคนอื่น พร้อมสีบอกระดับความปลอดภัย ให้คุณรู้สถานการณ์ตลอดเวลา",
+  "@onboardingBody1": {
+    "description": "Onboarding page 1 body"
+  },
+  "onboardingTitle2": "สะสม XP ทุกทริป",
+  "@onboardingTitle2": {
+    "description": "Onboarding page 2 title"
+  },
+  "onboardingBody2": "ทำเควส เช็คอินที่จุดต่างๆ และเลเวลอัพขณะที่คุณสำรวจสถานที่ใหม่ๆ ทั่วอาเซียน",
+  "@onboardingBody2": {
+    "description": "Onboarding page 2 body"
+  },
+  "onboardingTitle3": "เดินทางอย่างมั่นใจ",
+  "@onboardingTitle3": {
+    "description": "Onboarding page 3 title"
+  },
+  "onboardingBody3": "รับการแจ้งเตือนมิจฉาชีพและคะแนนความปลอดภัยก่อนไป เพื่อให้ทุกเซอร์ไพรส์เป็นเรื่องดีเสมอ",
+  "@onboardingBody3": {
+    "description": "Onboarding page 3 body"
+  },
+  "onboardingSkip": "ข้าม",
+  "@onboardingSkip": {
+    "description": "Skip button on onboarding"
+  },
+  "onboardingNext": "ถัดไป",
+  "@onboardingNext": {
+    "description": "Next button on onboarding"
+  },
+  "onboardingGetStarted": "เริ่มต้นใช้งาน",
+  "@onboardingGetStarted": {
+    "description": "Final onboarding page's call-to-action button"
+  },
   "loginWelcomeTitle": "ยินดีต้อนรับสู่ AseanGo",
   "@loginWelcomeTitle": {
     "description": "Login screen heading"

@@ -12,6 +12,56 @@ class AppLocalizationsTh extends AppLocalizations {
   String get appTagline => 'เพื่อนเดินทางที่คอยดูแลคุณ';
 
   @override
+  String get apiSessionExpired => 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่';
+
+  @override
+  String get apiConnectionTimeout => 'การเชื่อมต่อหมดเวลา กรุณาลองใหม่อีกครั้ง';
+
+  @override
+  String get apiServerUnreachable =>
+      'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่ภายหลัง';
+
+  @override
+  String get apiNoInternet =>
+      'ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาตรวจสอบการเชื่อมต่อ';
+
+  @override
+  String get apiServerError => 'เซิร์ฟเวอร์ขัดข้อง กรุณาลองใหม่ภายหลัง';
+
+  @override
+  String get apiGenericError => 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+
+  @override
+  String get onboardingTitle1 => 'ค้นพบสถานที่ที่ยืนยันแล้ว';
+
+  @override
+  String get onboardingBody1 =>
+      'สำรวจแผนที่พินสถานที่จริงจากนักเดินทางคนอื่น พร้อมสีบอกระดับความปลอดภัย ให้คุณรู้สถานการณ์ตลอดเวลา';
+
+  @override
+  String get onboardingTitle2 => 'สะสม XP ทุกทริป';
+
+  @override
+  String get onboardingBody2 =>
+      'ทำเควส เช็คอินที่จุดต่างๆ และเลเวลอัพขณะที่คุณสำรวจสถานที่ใหม่ๆ ทั่วอาเซียน';
+
+  @override
+  String get onboardingTitle3 => 'เดินทางอย่างมั่นใจ';
+
+  @override
+  String get onboardingBody3 =>
+      'รับการแจ้งเตือนมิจฉาชีพและคะแนนความปลอดภัยก่อนไป เพื่อให้ทุกเซอร์ไพรส์เป็นเรื่องดีเสมอ';
+
+  @override
+  String get onboardingSkip => 'ข้าม';
+
+  @override
+  String get onboardingNext => 'ถัดไป';
+
+  @override
+  String get onboardingGetStarted => 'เริ่มต้นใช้งาน';
+
+  @override
   String get loginWelcomeTitle => 'ยินดีต้อนรับสู่ AseanGo';
 
   @override

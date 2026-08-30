@@ -104,6 +104,96 @@ abstract class AppLocalizations {
   /// **'เพื่อนเดินทางที่คอยดูแลคุณ'**
   String get appTagline;
 
+  /// Shown when a 401 response triggers auto-logout
+  ///
+  /// In th, this message translates to:
+  /// **'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่'**
+  String get apiSessionExpired;
+
+  /// Shown when a request times out
+  ///
+  /// In th, this message translates to:
+  /// **'การเชื่อมต่อหมดเวลา กรุณาลองใหม่อีกครั้ง'**
+  String get apiConnectionTimeout;
+
+  /// Shown when there is network connectivity but the backend itself can't be reached
+  ///
+  /// In th, this message translates to:
+  /// **'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่ภายหลัง'**
+  String get apiServerUnreachable;
+
+  /// Shown when the device has no network connectivity at all
+  ///
+  /// In th, this message translates to:
+  /// **'ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาตรวจสอบการเชื่อมต่อ'**
+  String get apiNoInternet;
+
+  /// Shown on a 5xx response with no more specific error message
+  ///
+  /// In th, this message translates to:
+  /// **'เซิร์ฟเวอร์ขัดข้อง กรุณาลองใหม่ภายหลัง'**
+  String get apiServerError;
+
+  /// Fallback shown for any other API error
+  ///
+  /// In th, this message translates to:
+  /// **'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง'**
+  String get apiGenericError;
+
+  /// Onboarding page 1 title
+  ///
+  /// In th, this message translates to:
+  /// **'ค้นพบสถานที่ที่ยืนยันแล้ว'**
+  String get onboardingTitle1;
+
+  /// Onboarding page 1 body
+  ///
+  /// In th, this message translates to:
+  /// **'สำรวจแผนที่พินสถานที่จริงจากนักเดินทางคนอื่น พร้อมสีบอกระดับความปลอดภัย ให้คุณรู้สถานการณ์ตลอดเวลา'**
+  String get onboardingBody1;
+
+  /// Onboarding page 2 title
+  ///
+  /// In th, this message translates to:
+  /// **'สะสม XP ทุกทริป'**
+  String get onboardingTitle2;
+
+  /// Onboarding page 2 body
+  ///
+  /// In th, this message translates to:
+  /// **'ทำเควส เช็คอินที่จุดต่างๆ และเลเวลอัพขณะที่คุณสำรวจสถานที่ใหม่ๆ ทั่วอาเซียน'**
+  String get onboardingBody2;
+
+  /// Onboarding page 3 title
+  ///
+  /// In th, this message translates to:
+  /// **'เดินทางอย่างมั่นใจ'**
+  String get onboardingTitle3;
+
+  /// Onboarding page 3 body
+  ///
+  /// In th, this message translates to:
+  /// **'รับการแจ้งเตือนมิจฉาชีพและคะแนนความปลอดภัยก่อนไป เพื่อให้ทุกเซอร์ไพรส์เป็นเรื่องดีเสมอ'**
+  String get onboardingBody3;
+
+  /// Skip button on onboarding
+  ///
+  /// In th, this message translates to:
+  /// **'ข้าม'**
+  String get onboardingSkip;
+
+  /// Next button on onboarding
+  ///
+  /// In th, this message translates to:
+  /// **'ถัดไป'**
+  String get onboardingNext;
+
+  /// Final onboarding page's call-to-action button
+  ///
+  /// In th, this message translates to:
+  /// **'เริ่มต้นใช้งาน'**
+  String get onboardingGetStarted;
+
   /// Login screen heading
   ///
   /// In th, this message translates to:

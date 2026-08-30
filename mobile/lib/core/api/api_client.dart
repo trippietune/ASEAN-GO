@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 /// Base URL for the backend API.
 ///
@@ -28,6 +29,16 @@ const _tokenKey = 'auth_token';
 /// snackbars without needing a BuildContext of its own.
 final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
+/// The Dio interceptors below run outside the widget tree (no BuildContext
+/// available at construction time), so they can't reach AppLocalizations
+/// via `.of(context)` the normal way. [AseanGoApp] keeps this in sync with
+/// whatever locale Flutter actually resolved (device locale, or the user's
+/// explicit override from [localeControllerProvider]) every time it
+/// rebuilds — [lookupAppLocalizations] then resolves error copy from it
+/// directly. Defaults to Thai, the app's source language, until the first
+/// frame sets a real value.
+Locale currentApiLocale = const Locale('th');
+
 class ApiClient {
   ApiClient()
       : dio = Dio(
@@ -51,12 +62,13 @@ class ApiClient {
           handler.next(options);
         },
         onError: (error, handler) async {
+          final l10n = lookupAppLocalizations(currentApiLocale);
           if (error.response?.statusCode == 401) {
             await clearToken();
-            _showSnackBar('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+            _showSnackBar(l10n.apiSessionExpired);
             onUnauthorized?.call();
           } else {
-            _showSnackBar(await _messageFor(error));
+            _showSnackBar(await _messageFor(error, l10n));
           }
           handler.next(error);
         },
@@ -81,30 +93,27 @@ class ApiClient {
     scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(content: Text(message)));
   }
 
-  // Left as Thai-only: this interceptor runs outside the widget tree (no
-  // BuildContext available at construction time), so it can't reach
-  // AppLocalizations without a fragile global-context workaround.
-  Future<String> _messageFor(DioException error) async {
+  Future<String> _messageFor(DioException error, AppLocalizations l10n) async {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return 'การเชื่อมต่อหมดเวลา กรุณาลองใหม่อีกครั้ง';
+        return l10n.apiConnectionTimeout;
       case DioExceptionType.connectionError:
         // Distinguishes "device has no network at all" from "network is up
         // but the backend itself is unreachable" (wrong host, server down,
         // firewall) — the fix for each is different, so the message should be.
         final results = await Connectivity().checkConnectivity();
         final hasNetwork = results.any((r) => r != ConnectivityResult.none);
-        return hasNetwork ? 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่ภายหลัง' : 'ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาตรวจสอบการเชื่อมต่อ';
+        return hasNetwork ? l10n.apiServerUnreachable : l10n.apiNoInternet;
       case DioExceptionType.badResponse:
         final status = error.response?.statusCode ?? 0;
-        if (status >= 500) return 'เซิร์ฟเวอร์ขัดข้อง กรุณาลองใหม่ภายหลัง';
+        if (status >= 500) return l10n.apiServerError;
         return (error.response?.data is Map && (error.response?.data as Map)['error'] != null)
             ? (error.response!.data as Map)['error'] as String
-            : 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+            : l10n.apiGenericError;
       default:
-        return 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+        return l10n.apiGenericError;
     }
   }
 }
