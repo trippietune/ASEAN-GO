@@ -110,6 +110,16 @@ calls `railway up` using a `RAILWAY_TOKEN` repo secret. Generate one via
 Railway dashboard → account settings → Tokens, then add it at
 GitHub repo → Settings → Secrets and variables → Actions.
 
+Before deploying the new code, the workflow's `migrate` job runs
+`backend/db/migrate.sh` against `PRODUCTION_DATABASE_URL` (a separate repo
+secret — same Supabase pooler connection string as Railway's `DATABASE_URL`)
+to apply any migration files not yet recorded in the `schema_migrations`
+table. This project's migrations are hand-written raw SQL, not
+`node-pg-migrate`'s format, and most aren't safe to re-run — `migrate.sh`
+tracks what's already applied so each file only ever runs once. If
+`PRODUCTION_DATABASE_URL` is unset, the job fails loudly (rather than
+silently skipping) so a forgotten migration can't ship unnoticed.
+
 ---
 
 ## 3. Admin Dashboard (Vercel) — ✅ DEPLOYED

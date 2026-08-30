@@ -1,6 +1,7 @@
 import { Pool, types } from "pg";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
+import { Sentry } from "../config/sentry";
 
 // DATE (OID 1082) defaults to a JS Date at local midnight, which then
 // serializes through res.json()'s toISOString() shifted to a different
@@ -28,4 +29,5 @@ export const pool = new Pool({
 // in-flight queries that actually depended on it.
 pool.on("error", (err) => {
   logger.error({ err }, "Unexpected error on idle database client");
+  Sentry.captureException(err, { tags: { source: "pg-pool" } });
 });

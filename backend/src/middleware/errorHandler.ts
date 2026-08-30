@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { logger } from "../config/logger";
+import { Sentry } from "../config/sentry";
 
 export class HttpError extends Error {
   // `extra` carries structured fields a client can act on programmatically
@@ -17,14 +18,18 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   }
   if (err instanceof HttpError) {
     // Client errors (4xx) are routine — logging them at 'warn' keeps 'error'
-    // reserved for genuinely unexpected failures worth paging on.
+    // reserved for genuinely unexpected failures worth paging on. Same
+    // reasoning applies to Sentry: reporting every 401/404 would bury real
+    // incidents in noise, so only 5xx HttpErrors are sent.
     if (err.status >= 500) {
       logger.error({ err, path: req.path }, err.message);
+      Sentry.captureException(err, { extra: { path: req.path } });
     } else {
       logger.warn({ path: req.path, status: err.status }, err.message);
     }
     return res.status(err.status).json({ error: err.message, ...err.extra });
   }
   logger.error({ err, path: req.path }, "Unhandled error");
+  Sentry.captureException(err, { extra: { path: req.path } });
   return res.status(500).json({ error: "Internal server error" });
 }

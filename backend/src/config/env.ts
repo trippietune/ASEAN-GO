@@ -40,6 +40,7 @@ export const env = {
   smtpUser: process.env.SMTP_USER || undefined,
   smtpPassword: process.env.SMTP_PASSWORD || undefined,
   smtpFrom: process.env.SMTP_FROM || undefined,
+  sentryDsn: process.env.SENTRY_DSN || undefined,
   // Browser-based clients only (the admin dashboard, Flutter web) — the
   // mobile app sends no Origin header and is unaffected by CORS either way.
   // Comma-separated. Explicit allowlist required in production; in

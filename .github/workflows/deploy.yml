@@ -7,6 +7,10 @@ name: Deploy
 #   VERCEL_TOKEN    - Vercel personal/team API token
 #   VERCEL_ORG_ID   - from `vercel link` in admin/
 #   VERCEL_PROJECT_ID
+#   PRODUCTION_DATABASE_URL - same Supabase pooler connection string used in
+#                             Railway's DATABASE_URL, so this workflow can
+#                             apply pending migrations before the new code
+#                             (which may expect them) goes live
 on:
   workflow_run:
     workflows: ["CI"]
@@ -14,7 +18,19 @@ on:
     types: [completed]
 
 jobs:
+  migrate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply pending migrations
+        working-directory: backend
+        run: ./db/migrate.sh
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+
   deploy-backend:
+    needs: migrate
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
