@@ -279,4 +279,4 @@ banking details.
 - [ ] **Blocked on you:** custom domain + DNS records (see §5)
 - [ ] **Blocked on you:** Omise live-mode business verification (see §6)
 - [ ] **Needs a Mac:** iOS IPA build (Xcode + Apple Developer account)
-- [ ] Optional: add `RAILWAY_TOKEN`/`VERCEL_TOKEN`+IDs as GitHub secrets so `deploy.yml` can auto-deploy on push (currently Vercel already auto-deploys via its own GitHub integration independent of this workflow; Railway does not yet)
+- [x] `RENDER_DEPLOY_HOOK_URL` and `PRODUCTION_DATABASE_URL` added as GitHub secrets so `deploy.yml` auto-deploys the backend on push (Vercel already auto-deploys the admin dashboard independently via its own GitHub integration — `deploy.yml` has no admin job)
