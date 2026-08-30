@@ -4,14 +4,22 @@ Status snapshot: see the checklist at the bottom for what's done vs. pending.
 
 ## Live URLs
 
-- **Backend (Railway):** https://aseango-backend-production.up.railway.app
+- **Backend (Render):** https://asean-go.onrender.com
 - **Admin Dashboard (Vercel):** https://asean-go.vercel.app
 - **Repo:** https://github.com/trippietune/ASEAN-GO
 - **Database:** Supabase project `pcsupxayqqppzhfvandg` (via Transaction pooler, `ap-northeast-2`)
 
+> **Migration note:** the backend ran on Railway until its trial expired
+> with no free tier to fall back to — moved to Render's free plan instead.
+> Most of the Railway-specific detail below (§2) is kept as historical
+> record of how the original setup worked, not as current instructions;
+> `backend/render.yaml` and this section's live URL are what's actually
+> current. Render's free plan sleeps the service after 15 minutes idle —
+> the first request after that takes 30-50s to wake it back up.
+
 ## Architecture
 
-- **Backend** — Node/Express/TypeScript, Docker image, deploys to Railway
+- **Backend** — Node/Express/TypeScript, Docker image, deploys to Render (`backend/render.yaml`)
 - **Database** — Supabase (managed Postgres + PostGIS)
 - **Admin Dashboard** — React/Vite, deploys to Vercel
 - **Mobile** — Flutter, Android APK (signed) + iOS IPA (needs a Mac)
@@ -106,9 +114,10 @@ and covers that domain with no setup needed. See §5 for a custom domain.
 ### CI/CD
 
 `.github/workflows/deploy.yml` runs after `ci.yml` passes on `main`, and
-calls `railway up` using a `RAILWAY_TOKEN` repo secret. Generate one via
-Railway dashboard → account settings → Tokens, then add it at
-GitHub repo → Settings → Secrets and variables → Actions.
+triggers a Render deploy by POSTing to a `RENDER_DEPLOY_HOOK_URL` repo
+secret. Get that URL from the Render dashboard → `asean-go` service →
+Settings → Deploy Hook, then add it at GitHub repo → Settings → Secrets and
+variables → Actions.
 
 Before deploying the new code, the workflow's `migrate` job runs
 `backend/db/migrate.sh` against `PRODUCTION_DATABASE_URL` (a separate repo
