@@ -1,5 +1,6 @@
 import { Pool, types } from "pg";
 import { env } from "../config/env";
+import { logger } from "../config/logger";
 
 // DATE (OID 1082) defaults to a JS Date at local midnight, which then
 // serializes through res.json()'s toISOString() shifted to a different
@@ -16,4 +17,15 @@ types.setTypeParser(1082, (value) => value);
 export const pool = new Pool({
   connectionString: env.databaseUrl,
   ssl: env.isProduction ? { rejectUnauthorized: false } : undefined,
+});
+
+// An idle client in the pool (not one currently serving a request) can still
+// emit a connection-level error — e.g. Supabase pausing the project or
+// dropping the socket. node-postgres surfaces that as an 'error' event on
+// the Pool itself, and Node's default behavior for an unhandled 'error'
+// event is to crash the process. Without this listener, a single dropped
+// idle connection takes down the entire API rather than just failing the
+// in-flight queries that actually depended on it.
+pool.on("error", (err) => {
+  logger.error({ err }, "Unexpected error on idle database client");
 });

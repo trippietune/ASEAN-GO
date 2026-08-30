@@ -93,6 +93,11 @@ async function verifyGoogleIdToken(idToken: string) {
   return { providerId: payload.sub, email: payload.email, displayName: payload.name ?? payload.email, avatarUrl: payload.picture };
 }
 
+// Facebook's Graph API has no documented SLA on response time — without a
+// timeout, a hung call here holds the request (and whatever DB connection
+// it may be using) open indefinitely instead of failing fast.
+const FACEBOOK_GRAPH_TIMEOUT_MS = 10_000;
+
 /// Verifies a Facebook access token by asking Facebook's Graph API to
 /// confirm it's valid for our app (via the app's own access token as
 /// `input_token`'s authority), then fetches the profile fields we need.
@@ -101,18 +106,29 @@ async function verifyFacebookAccessToken(accessToken: string) {
     throw new HttpError(501, "Facebook sign-in is not configured yet");
   }
 
-  const appAccessToken = `${env.facebookAppId}|${env.facebookAppSecret}`;
-  const debugRes = await fetch(
-    `https://graph.facebook.com/debug_token?input_token=${encodeURIComponent(accessToken)}&access_token=${encodeURIComponent(appAccessToken)}`
-  );
-  const debugData = (await debugRes.json()) as { data?: { is_valid?: boolean; app_id?: string } };
-  if (!debugRes.ok || !debugData.data?.is_valid || debugData.data.app_id !== env.facebookAppId) {
-    throw new HttpError(401, "Invalid Facebook sign-in token");
+  let debugRes, profileRes;
+  try {
+    const appAccessToken = `${env.facebookAppId}|${env.facebookAppSecret}`;
+    debugRes = await fetch(
+      `https://graph.facebook.com/debug_token?input_token=${encodeURIComponent(accessToken)}&access_token=${encodeURIComponent(appAccessToken)}`,
+      { signal: AbortSignal.timeout(FACEBOOK_GRAPH_TIMEOUT_MS) }
+    );
+    const debugData = (await debugRes.json()) as { data?: { is_valid?: boolean; app_id?: string } };
+    if (!debugRes.ok || !debugData.data?.is_valid || debugData.data.app_id !== env.facebookAppId) {
+      throw new HttpError(401, "Invalid Facebook sign-in token");
+    }
+
+    profileRes = await fetch(
+      `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${encodeURIComponent(accessToken)}`,
+      { signal: AbortSignal.timeout(FACEBOOK_GRAPH_TIMEOUT_MS) }
+    );
+  } catch (err) {
+    if (err instanceof HttpError) throw err;
+    // DOMException("TimedOut") from AbortSignal.timeout(), or a network-level
+    // fetch failure — either way Facebook didn't give us a usable answer.
+    throw new HttpError(503, "Couldn't reach Facebook to verify sign-in. Please try again.");
   }
 
-  const profileRes = await fetch(
-    `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${encodeURIComponent(accessToken)}`
-  );
   const profile = (await profileRes.json()) as { id?: string; name?: string; email?: string; picture?: { data?: { url?: string } } };
   if (!profileRes.ok || !profile.id) {
     throw new HttpError(401, "Invalid Facebook sign-in token");

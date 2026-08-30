@@ -1,0 +1,31 @@
+name: Keep Supabase awake
+
+# Supabase's free tier auto-pauses a project after a period of no database
+# activity, which took production auth down until someone noticed and
+# restored it from the dashboard. /health alone doesn't touch the DB, so we
+# hit an endpoint that runs a real query — pinging every 2 days keeps it well
+# under whatever inactivity window triggers the pause.
+on:
+  schedule:
+    - cron: "17 3 */2 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit an endpoint that queries the database
+        run: |
+          # A 401 (no such account) is the expected, healthy response here —
+          # it still proves the request reached Postgres and got an answer.
+          # Only a 5xx (DB unreachable) or a curl-level failure should fail
+          # this job.
+          status=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            https://aseango-backend-production.up.railway.app/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"identifier":"keepalive@aseango.internal","password":"not-a-real-password"}')
+          echo "status=$status"
+          if [ "$status" -ge 500 ]; then
+            echo "Backend/database appears unhealthy (status $status)"
+            exit 1
+          fi
