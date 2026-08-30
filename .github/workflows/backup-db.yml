@@ -1,0 +1,34 @@
+name: Backup database
+
+# Supabase's free tier has no automated backups or point-in-time recovery —
+# this workflow is the only backup mechanism this project has. Runs a full
+# pg_dump against production daily and keeps the result as a workflow
+# artifact. See DISASTER_RECOVERY.md for how to restore from one and for the
+# honest RPO/RTO this setup actually provides.
+on:
+  schedule:
+    - cron: "11 19 * * *" # ~02:11 ICT
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump production database
+        run: |
+          filename="aseango-backup-$(date -u +%Y-%m-%dT%H%M%SZ).dump"
+          pg_dump "$DATABASE_URL" --no-owner --no-privileges -F c -f "$filename"
+          echo "BACKUP_FILENAME=$filename" >> "$GITHUB_ENV"
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+
+      # This artifact contains full production data, including password
+      # hashes and payment records — never commit a dump to git history
+      # (that leak would be permanent). Artifacts are private to this repo
+      # and only reachable by someone with repo access.
+      - name: Upload backup as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BACKUP_FILENAME }}
+          path: ${{ env.BACKUP_FILENAME }}
+          retention-days: 30
