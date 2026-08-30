@@ -6,7 +6,10 @@ SELECT * FROM (VALUES
   ('Chatuchak Weekend Market', 'shop', 'Huge market, busy and generally safe but watch belongings.', 'Thailand', 'Bangkok', ST_MakePoint(100.5502, 13.7999)::geography, true, false, NULL::text, 75),
   ('Khao San Road (late night)', 'other', 'Reports of overpriced tuk-tuks and rigged card games after midnight.', 'Thailand', 'Bangkok', ST_MakePoint(100.4977, 13.7588)::geography, false, true, 'ระวังคนชวนเล่นไพ่หรือพาไปร้านที่ราคาสูงผิดปกติ', 30),
   ('Siam Paragon', 'shop', 'Upscale mall, high security presence.', 'Thailand', 'Bangkok', ST_MakePoint(100.5344, 13.7462)::geography, true, false, NULL::text, 95),
-  ('Fake Gem Shop Cluster', 'shop', 'Multiple reports of a "closed temple" scam redirecting tourists here.', 'Thailand', 'Bangkok', ST_MakePoint(100.4930, 13.7510)::geography, false, true, 'ระวังคนบอกว่าวัดปิดแล้วชวนไปซื้อพลอย', 15)
+  ('Fake Gem Shop Cluster', 'shop', 'Multiple reports of a "closed temple" scam redirecting tourists here.', 'Thailand', 'Bangkok', ST_MakePoint(100.4930, 13.7510)::geography, false, true, 'ระวังคนบอกว่าวัดปิดแล้วชวนไปซื้อพลอย', 15),
+  ('Jay Fai', 'food', 'Michelin-starred street food stall famous for crab omelette. Expect a long queue.', 'Thailand', 'Bangkok', ST_MakePoint(100.5017, 13.7539)::geography, true, false, NULL::text, 88),
+  ('Chinatown Yaowarat Food Street', 'food', 'Night market strip packed with street food vendors, very touristy and busy.', 'Thailand', 'Bangkok', ST_MakePoint(100.5081, 13.7402)::geography, true, false, NULL::text, 80),
+  ('Or Tor Kor Market', 'food', 'Premium fresh food and fruit market, popular with locals and tourists alike.', 'Thailand', 'Bangkok', ST_MakePoint(100.5490, 13.7999)::geography, true, false, NULL::text, 90)
 ) AS v(name, category, description, country, city, location, is_verified, is_scam_alert, scam_alert_message, safety_score)
 WHERE NOT EXISTS (
   SELECT 1 FROM verified_pins p WHERE p.name = v.name AND p.country = v.country
