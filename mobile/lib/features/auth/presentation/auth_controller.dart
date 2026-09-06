@@ -2,6 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/providers.dart';
+import '../../../core/notifications/fcm_service.dart';
+import '../../../core/notifications/fcm_token_repository.dart';
+import '../../../core/notifications/fcm_token_repository_provider.dart';
 import '../../../core/realtime/socket_service.dart';
 import '../data/auth_repository.dart';
 import '../data/social_auth_service.dart';
@@ -52,6 +55,8 @@ class AuthController extends StateNotifier<AuthState> {
     this._repository,
     this._socketService,
     this._socialAuthService,
+    this._fcmService,
+    this._fcmTokenRepository,
     ApiClient apiClient,
   ) : super(const AuthInitial()) {
     apiClient.onUnauthorized = _handleUnauthorized;
@@ -61,10 +66,32 @@ class AuthController extends StateNotifier<AuthState> {
   final AuthRepository _repository;
   final SocketService _socketService;
   final SocialAuthService _socialAuthService;
+  final FcmService _fcmService;
+  final FcmTokenRepository _fcmTokenRepository;
 
   void _handleUnauthorized() {
     _socketService.disconnect();
     state = const AuthUnauthenticated();
+  }
+
+  /// Requests notification permission and, if granted, sends this device's
+  /// FCM token to the backend. Called right after auth succeeds (not at app
+  /// cold-start) so the iOS system permission prompt has some context —
+  /// asking before the user has even logged in tends to get reflexively
+  /// denied. Silently does nothing on failure (e.g. FCM unset up in dev, or
+  /// the user denies permission) — push registration is best-effort and
+  /// must never block a successful login.
+  Future<void> _registerPushToken() async {
+    try {
+      final granted = await _fcmService.requestPermission();
+      if (!granted) return;
+      final token = await _fcmService.getToken();
+      if (token != null) {
+        await _fcmTokenRepository.registerToken(token);
+      }
+    } catch (_) {
+      // Best-effort — push registration failing must never block login.
+    }
   }
 
   Future<void> _restoreSession() async {
@@ -73,6 +100,7 @@ class AuthController extends StateNotifier<AuthState> {
     if (user != null) {
       state = AuthAuthenticated(user);
       await _socketService.connect();
+      await _registerPushToken();
     } else {
       state = const AuthUnauthenticated();
     }
@@ -85,6 +113,7 @@ class AuthController extends StateNotifier<AuthState> {
       final user = await _repository.login(identifier: identifier, password: password);
       state = AuthAuthenticated(user);
       await _socketService.connect();
+      await _registerPushToken();
     } catch (e) {
       state = AuthUnauthenticated(error: _authErrorMessage(e, fallbackError));
     }
@@ -107,6 +136,7 @@ class AuthController extends StateNotifier<AuthState> {
       );
       state = AuthAuthenticated(user);
       await _socketService.connect();
+      await _registerPushToken();
     } catch (e) {
       state = AuthUnauthenticated(error: _authErrorMessage(e, fallbackError));
     }
@@ -126,6 +156,7 @@ class AuthController extends StateNotifier<AuthState> {
       final user = await _repository.loginWithGoogle(idToken: idToken);
       state = AuthAuthenticated(user);
       await _socketService.connect();
+      await _registerPushToken();
     } catch (e) {
       state = AuthUnauthenticated(error: _authErrorMessage(e, fallbackError));
     }
@@ -145,15 +176,31 @@ class AuthController extends StateNotifier<AuthState> {
       final user = await _repository.loginWithFacebook(accessToken: accessToken);
       state = AuthAuthenticated(user);
       await _socketService.connect();
+      await _registerPushToken();
     } catch (e) {
       state = AuthUnauthenticated(error: _authErrorMessage(e, fallbackError));
     }
   }
 
   Future<void> logout() async {
+    // Captured before clearing the session so a stale token doesn't linger
+    // in user_fcm_tokens after this device signs out — otherwise, on a
+    // shared/reset device, whoever logs in next wouldn't overwrite it until
+    // their own token registration happens to fire, during which pushes for
+    // this account would still land on it.
+    final token = await _fcmService.getToken();
+
     await _repository.logout();
     _socketService.disconnect();
     state = const AuthUnauthenticated();
+
+    if (token != null) {
+      try {
+        await _fcmTokenRepository.unregisterToken(token);
+      } catch (_) {
+        // Best-effort — must never block local sign-out from completing.
+      }
+    }
   }
 
   /// Replaces the whole cached user (e.g. after an avatar upload returns the
@@ -181,6 +228,8 @@ final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
     ref.watch(authRepositoryProvider),
     ref.watch(socketServiceProvider),
     ref.watch(socialAuthServiceProvider),
+    ref.watch(fcmServiceProvider),
+    ref.watch(fcmTokenRepositoryProvider),
     ref.watch(apiClientProvider),
   );
 });

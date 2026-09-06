@@ -8,6 +8,7 @@ import { didLevelUp, xpIntoCurrentLevel } from "../users/xp";
 import { QUEST_TYPES } from "./quest-types";
 import { evaluateUnlockRequirements, fetchUnlockContext, isQuestUnlocked, withImplicitPinRequirement } from "./unlock.service";
 import { evaluateAchievements } from "../achievements/achievements.service";
+import { sendPushToUser } from "../notifications/push.service";
 
 // Level-skip thresholds, checked highest-first so a user who's accumulated
 // 10 completions gets the 5-level skip, not the 1-level one. Gate percentage
@@ -201,6 +202,29 @@ questsRouter.post("/complete", requireAuth, async (req: AuthedRequest, res, next
     const awardedAchievements = await evaluateAchievements(client, req.userId!);
 
     await client.query("COMMIT");
+
+    // Push sends happen strictly after commit — they're side-effects of the
+    // completed transaction, not part of it, and must never affect whether
+    // the quest-completion itself succeeds. Deliberately no push per plain
+    // quest completion (v1 scope): the caller is actively in the app right
+    // now and already gets this in the response; a push here would be noise.
+    // Achievement/level-up are worth notifying because they're rarer,
+    // celebratory events the user may want to see even if this call came
+    // from a background sync.
+    for (const achievement of awardedAchievements) {
+      void sendPushToUser(req.userId!, {
+        title: "Achievement Unlocked!",
+        body: achievement.title,
+        data: { type: "achievement_unlocked", achievementId: achievement.id },
+      });
+    }
+    if (leveledUp || skippedLevels > 0) {
+      void sendPushToUser(req.userId!, {
+        title: `Level ${finalLevel}!`,
+        body: "You leveled up.",
+        data: { type: "level_up", level: String(finalLevel) },
+      });
+    }
 
     res.json({
       alreadyCompleted: false,

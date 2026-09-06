@@ -7,6 +7,7 @@ import { HttpError } from "../../middleware/errorHandler";
 import { deleteAssetsByUrls } from "../media/media.service";
 import { QUEST_TYPES } from "../quests/quest-types";
 import { cleanupDanglingChapterRequirements, relinkChapterRequirements } from "../quests/chapters.service";
+import { sendPushToUser } from "../notifications/push.service";
 
 export const adminRouter = Router();
 
@@ -988,6 +989,29 @@ adminRouter.get("/admin/emergency-contacts", async (req, res, next) => {
       [search ?? null]
     );
     res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Notifications (support/debugging tool — send an arbitrary test push to a
+// specific user to confirm their device is registered and receiving pushes,
+// without needing Firebase Console access. Kept gated the same as real sends
+// so it also verifies the notification_settings gate rather than masking it.)
+// ---------------------------------------------------------------------------
+
+const testNotificationSchema = z.object({
+  userId: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  body: z.string().min(1).max(500),
+});
+
+adminRouter.post("/admin/notifications/test", async (req, res, next) => {
+  try {
+    const { userId, title, body } = testNotificationSchema.parse(req.body);
+    await sendPushToUser(userId, { title, body });
+    res.json({ success: true });
   } catch (err) {
     next(err);
   }

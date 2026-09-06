@@ -4,6 +4,7 @@ import { pool } from "../../db/pool";
 import { requireAuth, AuthedRequest } from "../../middleware/auth";
 import { HttpError } from "../../middleware/errorHandler";
 import { emitToUser } from "../../realtime/socket";
+import { sendPushToUser } from "../notifications/push.service";
 
 export const safetyRouter = Router();
 
@@ -85,6 +86,16 @@ safetyRouter.post("/sos", requireAuth, async (req: AuthedRequest, res, next) => 
     };
 
     emitToUser(req.userId!, "sos:created", payload);
+    // Gated on the general pushNotifications flag, not safetyAlerts — this
+    // confirms the user's OWN action was recorded, not a third-party safety
+    // warning, so it shouldn't be silenced by a toggle meant for the latter.
+    // Push (unlike the socket event above) still reaches the user if they
+    // background the app right after triggering SOS, e.g. to make a call.
+    void sendPushToUser(req.userId!, {
+      title: "SOS Activated",
+      body: "Your emergency alert has been recorded.",
+      data: { type: "sos_created", sosId: event.id },
+    });
 
     res.status(201).json({
       id: event.id,

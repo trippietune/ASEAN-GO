@@ -41,6 +41,9 @@ export const env = {
   smtpPassword: process.env.SMTP_PASSWORD || undefined,
   smtpFrom: process.env.SMTP_FROM || undefined,
   sentryDsn: process.env.SENTRY_DSN || undefined,
+  fcmProjectId: process.env.FIREBASE_PROJECT_ID || undefined,
+  fcmClientEmail: process.env.FIREBASE_CLIENT_EMAIL || undefined,
+  fcmPrivateKey: process.env.FIREBASE_PRIVATE_KEY || undefined,
   // Browser-based clients only (the admin dashboard, Flutter web) — the
   // mobile app sends no Origin header and is unaffected by CORS either way.
   // Comma-separated. Explicit allowlist required in production; in

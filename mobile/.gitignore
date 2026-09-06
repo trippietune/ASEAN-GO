@@ -10,6 +10,12 @@
 # can still be tracked — git won't apply a negation inside an excluded dir.)
 android/keystore/*.jks
 android/keystore/keystore.properties
+
+# Firebase per-project config — identifies which Firebase project this app
+# talks to; each developer/CI environment fetches its own copy from the
+# Firebase Console rather than sharing one committed to the repo.
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
 .atom/
 .build/
 .buildlog/

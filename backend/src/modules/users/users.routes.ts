@@ -203,6 +203,46 @@ usersRouter.put("/me/notification-settings", requireAuth, async (req: AuthedRequ
   }
 });
 
+const fcmTokenSchema = z.object({
+  token: z.string().min(1),
+  platform: z.enum(["android", "ios"]),
+});
+
+usersRouter.post("/me/fcm-token", requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const { token, platform } = fcmTokenSchema.parse(req.body);
+    await pool.query(
+      `INSERT INTO user_fcm_tokens (user_id, token, platform)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (token) DO UPDATE SET user_id = $1, platform = $3, updated_at = now()`,
+      [req.userId, token, platform]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const deleteFcmTokenSchema = z.object({
+  token: z.string().min(1),
+});
+
+// Idempotent — a double-unregister (e.g. a logout retry) is a normal race,
+// not an error, so this always returns success regardless of whether a
+// matching row existed.
+usersRouter.delete("/me/fcm-token", requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const { token } = deleteFcmTokenSchema.parse(req.body);
+    await pool.query("DELETE FROM user_fcm_tokens WHERE token = $1 AND user_id = $2", [
+      token,
+      req.userId,
+    ]);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 usersRouter.get("/me/privacy-settings", requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const result = await pool.query(
