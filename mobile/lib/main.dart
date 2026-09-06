@@ -29,7 +29,7 @@ import 'l10n/generated/app_localizations.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
-void main() async {
+void main() {
   // Widget-tree build/layout/paint errors (e.g. a bad null-check inside a
   // build method) go through FlutterError.onError; everything else —
   // unawaited Future rejections, errors thrown from timers/microtasks
@@ -40,20 +40,35 @@ void main() async {
     FlutterError.presentError(details);
   };
 
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // Built here (rather than letting ProviderScope create its own container)
-  // so the same FcmService instance that AuthController later reads via
-  // fcmServiceProvider is the one whose foreground listener gets wired up
-  // before the first frame — initialize() is idempotent, but this avoids
-  // ever running two separate instances side by side.
-  final container = ProviderContainer();
-  await container.read(fcmServiceProvider).initialize();
-
+  // WidgetsFlutterBinding.ensureInitialized() and runApp() must run in the
+  // same zone — Flutter asserts this and throws "Zone mismatch" otherwise.
+  // Everything from binding init through runApp is therefore inside this
+  // single runZonedGuarded callback, not split across it.
   runZonedGuarded(
-    () => runApp(UncontrolledProviderScope(container: container, child: const AseanGoApp())),
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      await Firebase.initializeApp();
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+      // Built here (rather than letting ProviderScope create its own
+      // container) so the same FcmService instance that AuthController
+      // later reads via fcmServiceProvider is the one whose foreground
+      // listener gets wired up before the first frame — initialize() is
+      // idempotent, but this avoids ever running two separate instances
+      // side by side.
+      final container = ProviderContainer();
+
+      // Deliberately not awaited before runApp: on some plugin versions,
+      // calling FlutterLocalNotificationsPlugin's platform channel methods
+      // before the engine has attached to a rendered view can hang
+      // indefinitely, blocking the first frame forever (observed as a
+      // stuck black screen). Kicking this off after runApp lets the UI
+      // render immediately; initialize() finishes shortly after in the
+      // background.
+      unawaited(container.read(fcmServiceProvider).initialize());
+
+      runApp(UncontrolledProviderScope(container: container, child: const AseanGoApp()));
+    },
     (error, stackTrace) => AppErrorLogger.record(error, stackTrace, context: 'Uncaught'),
   );
 }
