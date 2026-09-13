@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import '../../../core/api/api_client.dart';
+import '../presentation/quest_controller.dart' show QuestCompletionException;
 import 'quest_model.dart';
 
 /// Minimal projection of an awarded achievement — just enough for a toast.
@@ -88,20 +90,31 @@ class QuestsRepository {
         .toList();
   }
 
+  /// Throws [QuestCompletionException] with the backend's own message
+  /// (e.g. "This quest's unlock requirements aren't met yet") when the
+  /// server rejects the request, so the caller doesn't have to guess why.
   Future<QuestCompletionResult> completeQuest(
     String questId, {
     String? pinId,
   }) async {
-    final response = await _client.dio.post(
-      '/quests/complete',
-      data: {
-        'questId': questId,
-        // ignore: use_null_aware_elements
-        if (pinId != null) 'pinId': pinId,
-      },
-    );
-    return QuestCompletionResult.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    try {
+      final response = await _client.dio.post(
+        '/quests/complete',
+        data: {
+          'questId': questId,
+          // ignore: use_null_aware_elements
+          if (pinId != null) 'pinId': pinId,
+        },
+      );
+      return QuestCompletionResult.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      if (data is Map && data['error'] is String) {
+        throw QuestCompletionException(data['error'] as String);
+      }
+      rethrow;
+    }
   }
 }

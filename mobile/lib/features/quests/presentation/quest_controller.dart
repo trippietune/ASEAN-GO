@@ -47,29 +47,35 @@ class QuestsController extends AsyncNotifier<QuestsState> {
 
   /// Returns the server's authoritative completion result (including final
   /// xp/level/coinBalance — never recomputed on the client) so the caller
-  /// can show a snackbar, or null if the quest was already completed / the
-  /// request failed.
+  /// can show a snackbar, or null if the quest was already completed.
+  /// Throws [QuestCompletionException] with the server's own message (e.g.
+  /// "check in at this pin first") when the request is rejected, so the
+  /// caller can surface the real reason instead of a generic fallback.
   Future<QuestCompletionResult?> completeQuest(Quest quest) async {
     if (state.valueOrNull == null) return null;
 
-    try {
-      final result = await ref.read(questsRepositoryProvider).completeQuest(
-            quest.id,
-            pinId: quest.pinId,
-          );
+    final result = await ref.read(questsRepositoryProvider).completeQuest(
+          quest.id,
+          pinId: quest.pinId,
+        );
 
-      // A full re-fetch (not a local patch of just this one quest) because
-      // completing a quest can unlock others — the next quest in a Story
-      // chapter, a quest gated on this one via the generic 'quest'
-      // requirement type — and their `locked` flags need to reflect that.
-      final quests = await ref.read(questsRepositoryProvider).fetchQuests();
-      state = AsyncData(QuestsState(quests: quests));
+    // A full re-fetch (not a local patch of just this one quest) because
+    // completing a quest can unlock others — the next quest in a Story
+    // chapter, a quest gated on this one via the generic 'quest'
+    // requirement type — and their `locked` flags need to reflect that.
+    final quests = await ref.read(questsRepositoryProvider).fetchQuests();
+    state = AsyncData(QuestsState(quests: quests));
 
-      return result.alreadyCompleted ? null : result;
-    } catch (_) {
-      return null;
-    }
+    return result.alreadyCompleted ? null : result;
   }
+}
+
+/// Carries the backend's own explanation for why a quest couldn't be
+/// completed (e.g. an unmet unlock requirement), so the UI can show it
+/// verbatim instead of a generic "try again".
+class QuestCompletionException implements Exception {
+  const QuestCompletionException(this.message);
+  final String message;
 }
 
 final questsControllerProvider = AsyncNotifierProvider<QuestsController, QuestsState>(

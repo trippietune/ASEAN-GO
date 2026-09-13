@@ -9,6 +9,7 @@ import '../../../shared/widgets/loading_shimmer.dart';
 import '../../../shared/widgets/xp_gain_overlay.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/quest_model.dart';
+import '../data/quests_repository.dart' show QuestCompletionResult;
 import 'quest_card.dart';
 import 'quest_controller.dart';
 
@@ -48,11 +49,25 @@ class _QuestsScreenState extends ConsumerState<QuestsScreen> {
   Future<void> _completeQuest(Quest quest, BuildContext cardContext) async {
     final l10n = AppLocalizations.of(context);
     setState(() => _submittingQuestId = quest.id);
-    final result = await ref
-        .read(questsControllerProvider.notifier)
-        .completeQuest(quest);
+    QuestCompletionResult? result;
+    String? serverError;
+    try {
+      result = await ref
+          .read(questsControllerProvider.notifier)
+          .completeQuest(quest);
+    } on QuestCompletionException catch (e) {
+      serverError = e.message;
+    } catch (_) {
+      // Non-quest-specific failure (network, etc.) — falls through to the
+      // generic fallback message below.
+    }
     if (!mounted) return;
     setState(() => _submittingQuestId = null);
+
+    if (serverError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(serverError)));
+      return;
+    }
 
     if (result != null) {
       // Trust the server's final xp/level/coinBalance rather than
