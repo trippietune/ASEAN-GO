@@ -29,7 +29,10 @@ jobs:
       - name: Dump production database
         run: |
           filename="aseango-backup-$(date -u +%Y-%m-%dT%H%M%SZ).dump"
-          pg_dump "$DATABASE_URL" --no-owner --no-privileges -F c -f "$filename"
+          # ubuntu-latest ships its own older pg_dump on PATH ahead of the
+          # v17 one just installed (both exist side by side) — call the v17
+          # binary by its full path so it isn't shadowed.
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --no-owner --no-privileges -F c -f "$filename"
           echo "BACKUP_FILENAME=$filename" >> "$GITHUB_ENV"
         env:
           DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
