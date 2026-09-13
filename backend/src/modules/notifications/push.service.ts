@@ -46,6 +46,21 @@ export async function sendPushToUser(
       data: notification.data ?? {},
     });
 
+    logger.info(
+      {
+        userId,
+        successCount: response.successCount,
+        failureCount: response.failureCount,
+        responses: response.responses.map((r: SendResponse) => ({
+          success: r.success,
+          errorCode: r.error?.code,
+          errorMessage: r.error?.message,
+          messageId: r.messageId,
+        })),
+      },
+      "FCM sendEachForMulticast result"
+    );
+
     const deadTokens: string[] = [];
     response.responses.forEach((result: SendResponse, index: number) => {
       const code = result.error?.code;

@@ -59,7 +59,13 @@ class AuthRepository {
       final response = await _client.dio.get('/users/me');
       return AppUser.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
+      // 401 means the token itself is invalid/expired; 404 means the token
+      // is well-formed but the account it points to no longer exists (e.g.
+      // deleted server-side). Both mean "this session can't be restored" —
+      // treat them the same rather than leaving the caller stuck on
+      // AuthLoading forever with an uncaught exception.
+      final status = e.response?.statusCode;
+      if (status == 401 || status == 404) {
         await _client.clearToken();
         return null;
       }

@@ -96,12 +96,19 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> _restoreSession() async {
     state = const AuthLoading();
-    final user = await _repository.fetchCurrentUser();
-    if (user != null) {
-      state = AuthAuthenticated(user);
-      await _socketService.connect();
-      await _registerPushToken();
-    } else {
+    try {
+      final user = await _repository.fetchCurrentUser();
+      if (user != null) {
+        state = AuthAuthenticated(user);
+        await _socketService.connect();
+        await _registerPushToken();
+      } else {
+        state = const AuthUnauthenticated();
+      }
+    } catch (_) {
+      // Any unexpected failure here (network error, unhandled status code)
+      // must still resolve to an interactive screen — never leave the app
+      // stuck on the splash screen with no way for the user to proceed.
       state = const AuthUnauthenticated();
     }
   }
