@@ -79,7 +79,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     if (!mounted) return;
-    await ref.read(authControllerProvider.notifier).login(
+    await ref.read(authControllerProvider.notifier).loginWithFirebaseEmail(
           identifier,
           _passwordController.text,
           fallbackError: l10n.loginFailedFallback,

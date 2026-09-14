@@ -52,6 +52,16 @@ class AuthRepository {
     return AppUser.fromJson(response.data['user'] as Map<String, dynamic>);
   }
 
+  /// Exchanges a Firebase ID token for our own session. Firebase already
+  /// verified the underlying credential (password or Google OAuth) client
+  /// side; the backend only re-verifies the ID token's signature to trust
+  /// who it's for, then mints our usual session JWT.
+  Future<AppUser> loginWithFirebaseToken(String idToken) async {
+    final response = await _client.dio.post('/auth/firebase', data: {'idToken': idToken});
+    await _client.saveToken(response.data['token'] as String);
+    return AppUser.fromJson(response.data['user'] as Map<String, dynamic>);
+  }
+
   Future<AppUser?> fetchCurrentUser() async {
     final token = await _client.readToken();
     if (token == null) return null;

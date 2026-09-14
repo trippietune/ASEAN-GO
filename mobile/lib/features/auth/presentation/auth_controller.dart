@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/providers.dart';
@@ -7,6 +8,7 @@ import '../../../core/notifications/fcm_token_repository.dart';
 import '../../../core/notifications/fcm_token_repository_provider.dart';
 import '../../../core/realtime/socket_service.dart';
 import '../data/auth_repository.dart';
+import '../data/firebase_auth_service.dart';
 import '../data/social_auth_service.dart';
 import '../data/user_model.dart';
 
@@ -22,11 +24,37 @@ String _authErrorMessage(Object error, String fallback) {
   return fallback;
 }
 
+/// Maps Firebase's stable error codes to readable messages; falls back to
+/// [_authErrorMessage] for the backend-side exchange call, or [fallback].
+String _firebaseErrorMessage(Object error, String fallback) {
+  if (error is FirebaseAuthException) {
+    switch (error.code) {
+      case 'user-not-found':
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Invalid email or password';
+      case 'invalid-email':
+        return 'That email address looks invalid';
+      case 'user-disabled':
+        return 'This account has been disabled';
+      case 'email-already-in-use':
+        return 'An account with this email already exists';
+      case 'weak-password':
+        return 'Password is too weak — please choose a stronger one';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+    }
+  }
+  return _authErrorMessage(error, fallback);
+}
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(ref.watch(apiClientProvider));
 });
 
 final socialAuthServiceProvider = Provider<SocialAuthService>((ref) => SocialAuthService());
+
+final firebaseAuthServiceProvider = Provider<FirebaseAuthService>((ref) => FirebaseAuthService());
 
 sealed class AuthState {
   const AuthState();
@@ -55,6 +83,7 @@ class AuthController extends StateNotifier<AuthState> {
     this._repository,
     this._socketService,
     this._socialAuthService,
+    this._firebaseAuthService,
     this._fcmService,
     this._fcmTokenRepository,
     ApiClient apiClient,
@@ -66,6 +95,7 @@ class AuthController extends StateNotifier<AuthState> {
   final AuthRepository _repository;
   final SocketService _socketService;
   final SocialAuthService _socialAuthService;
+  final FirebaseAuthService _firebaseAuthService;
   final FcmService _fcmService;
   final FcmTokenRepository _fcmTokenRepository;
 
@@ -110,6 +140,42 @@ class AuthController extends StateNotifier<AuthState> {
       // must still resolve to an interactive screen — never leave the app
       // stuck on the splash screen with no way for the user to proceed.
       state = const AuthUnauthenticated();
+    }
+  }
+
+  /// Signs in via Firebase Authentication (Firebase itself checks the
+  /// password), then exchanges the resulting ID token for our own session
+  /// JWT so every existing req.userId-based route keeps working unchanged.
+  Future<void> loginWithFirebaseEmail(String email, String password, {required String fallbackError}) async {
+    state = const AuthLoading();
+    try {
+      final idToken = await _firebaseAuthService.signInWithEmail(email, password);
+      final user = await _repository.loginWithFirebaseToken(idToken);
+      state = AuthAuthenticated(user);
+      await _socketService.connect();
+      await _registerPushToken();
+    } catch (e) {
+      state = AuthUnauthenticated(error: _firebaseErrorMessage(e, fallbackError));
+    }
+  }
+
+  /// Creates the account in Firebase itself, then exchanges the resulting ID
+  /// token for our own session — mirrors [loginWithFirebaseEmail].
+  Future<void> registerWithFirebase(
+    String email,
+    String password,
+    String displayName, {
+    required String fallbackError,
+  }) async {
+    state = const AuthLoading();
+    try {
+      final idToken = await _firebaseAuthService.registerWithEmail(email, password, displayName);
+      final user = await _repository.loginWithFirebaseToken(idToken);
+      state = AuthAuthenticated(user);
+      await _socketService.connect();
+      await _registerPushToken();
+    } catch (e) {
+      state = AuthUnauthenticated(error: _firebaseErrorMessage(e, fallbackError));
     }
   }
 
@@ -235,6 +301,7 @@ final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
     ref.watch(authRepositoryProvider),
     ref.watch(socketServiceProvider),
     ref.watch(socialAuthServiceProvider),
+    ref.watch(firebaseAuthServiceProvider),
     ref.watch(fcmServiceProvider),
     ref.watch(fcmTokenRepositoryProvider),
     ref.watch(apiClientProvider),

@@ -74,11 +74,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       return;
     }
     final l10n = AppLocalizations.of(context);
-    await ref.read(authControllerProvider.notifier).register(
+    await ref.read(authControllerProvider.notifier).registerWithFirebase(
           _emailController.text.trim(),
           _passwordController.text,
           _displayNameController.text.trim(),
-          _usernameController.text.trim(),
           fallbackError: l10n.registerFailedFallback,
         );
   }
