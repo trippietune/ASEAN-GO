@@ -2,8 +2,10 @@ import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
+import { getAuth } from "firebase-admin/auth";
 import { pool } from "../../db/pool";
 import { env } from "../../config/env";
+import { getFirebaseApp } from "../../config/firebaseAdmin";
 import { HttpError } from "../../middleware/errorHandler";
 import { sendPasswordResetEmail } from "./mailer.client";
 
@@ -187,6 +189,42 @@ export async function loginWithGoogle(idToken: string) {
 export async function loginWithFacebook(accessToken: string) {
   const identity = await verifyFacebookAccessToken(accessToken);
   return findOrCreateSocialUser("facebook", identity);
+}
+
+/// Verifies a Firebase ID token — Firebase itself already checked the
+/// password or Google credential client-side, so this just confirms the
+/// token is genuine — then finds-or-creates the matching internal user row,
+/// linking it by firebase_uid so repeat logins resolve in one query.
+export async function loginWithFirebase(idToken: string) {
+  let decoded;
+  try {
+    decoded = await getAuth(getFirebaseApp()).verifyIdToken(idToken);
+  } catch {
+    throw new HttpError(401, "Invalid Firebase sign-in token");
+  }
+  const { uid, email, name, picture } = decoded;
+  if (!email) {
+    throw new HttpError(400, "This account has no email to sign in with");
+  }
+
+  const byUid = await pool.query<UserRecord>(`SELECT ${PUBLIC_COLUMNS} FROM users WHERE firebase_uid = $1`, [uid]);
+  if (byUid.rowCount) {
+    return byUid.rows[0];
+  }
+
+  const byEmail = await pool.query<UserRecord>(`SELECT ${PUBLIC_COLUMNS} FROM users WHERE email = $1`, [email]);
+  if (byEmail.rowCount) {
+    await pool.query("UPDATE users SET firebase_uid = $2, updated_at = now() WHERE id = $1", [byEmail.rows[0].id, uid]);
+    return byEmail.rows[0];
+  }
+
+  const result = await pool.query<UserRecord>(
+    `INSERT INTO users (email, display_name, auth_provider, firebase_uid, avatar_url)
+     VALUES ($1, $2, 'email', $3, $4)
+     RETURNING ${PUBLIC_COLUMNS}`,
+    [email, name ?? email, uid, picture ?? null]
+  );
+  return result.rows[0];
 }
 
 const RESET_CODE_TTL_MS = 15 * 60 * 1000; // 15 minutes

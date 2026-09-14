@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import {
   loginWithFacebook,
+  loginWithFirebase,
   loginWithGoogle,
   loginWithIdentifier,
   registerWithEmail,
@@ -68,6 +69,19 @@ authRouter.post("/facebook", async (req, res, next) => {
   try {
     const { accessToken } = facebookAuthSchema.parse(req.body);
     const user = await loginWithFacebook(accessToken);
+    const token = signToken(user.id);
+    res.json({ token, user });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const firebaseAuthSchema = z.object({ idToken: z.string().min(1) });
+
+authRouter.post("/firebase", async (req, res, next) => {
+  try {
+    const { idToken } = firebaseAuthSchema.parse(req.body);
+    const user = await loginWithFirebase(idToken);
     const token = signToken(user.id);
     res.json({ token, user });
   } catch (err) {
